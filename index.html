@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NeuroLin · Simulador de neuronas para Modelos Lineales</title>
+<meta name="description" content="Simulador interactivo: de la regresión lineal a la neurona artificial. Modelos Lineales, Universidad Nacional de Colombia, 2026-II.">
+<link rel="icon" type="image/jpeg" href="assets/nachito.jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ancizar+Sans:ital,wght@0,300..700;1,300..700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+:root{--font:"Ancizar Sans","Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--brand:#677d29;--brand-deep:#4c5c1e}
+:root[data-theme="light"]{--bg:#f6f6f6;--panel:#fafafa;--panel2:#efefea;--line:#a7a7a7;--grid:#dcdcdc;--txt:#262626;--mut:#595959;--title:#003241;--link:#005e6f;--acc:#677d29;--acc2:#d49d00;--pos:#19784b;--neg:#aa0c00;--hdr:#677d29;--hero-bg:linear-gradient(135deg,#fafafa,#e9eed8);--shadow:0 1px 3px rgba(0,0,0,.3),0 4px 10px rgba(0,0,0,.2)}
+:root[data-theme="dark"]{--bg:#0f1d22;--panel:#16282f;--panel2:#1c3239;--line:#2f4a53;--grid:#2a4048;--txt:#e8efe6;--mut:#9fb3a8;--title:#e8efe6;--link:#2bb4cb;--acc:#a3c34a;--acc2:#f2bf2e;--pos:#36b377;--neg:#ff6b5e;--hdr:#3d4c18;--hero-bg:linear-gradient(135deg,#16282f,#1f3a2a);--shadow:0 6px 24px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.55 var(--font)}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1{font-size:clamp(24px,3vw,34px);margin:.2em 0 .3em;line-height:1.2;color:var(--title);font-weight:600}
+h2{color:var(--title)}h3{color:var(--title)}
+.btn,button,input,select{font-family:var(--font)}
+h2{font-size:21px;margin:1.2em 0 .4em}h3{font-size:16px;margin:0 0 10px}
+p{margin:.5em 0}
+.muted{color:var(--mut)}
+.top{position:sticky;top:0;z-index:30;height:56px;display:flex;align-items:center;gap:10px;padding:0 16px;background:var(--hdr);color:#fff;border-radius:0 0 40px 0;box-shadow:var(--shadow)}
+.brand{font-weight:700;letter-spacing:.3px;font-size:19px;color:#fff}
+.brand:hover{text-decoration:none}
+.brand small{font-weight:500;color:rgba(255,255,255,.8);margin-left:8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px}
+.top .btn{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.55)}
+.top .btn:hover{background:rgba(255,255,255,.28);border-color:#fff}
+.spacer{flex:1}
+.btn{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:15px;font-weight:500;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--brand);text-decoration:none}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.btn.primary:hover{background:var(--brand-deep);border-color:var(--brand-deep)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.burger{display:none}
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 56px)}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:16px 12px;position:sticky;top:56px;height:calc(100vh - 56px);overflow:auto}
+.side h4{margin:16px 8px 6px;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mut)}
+.side a{display:flex;gap:10px;align-items:center;padding:8px 10px;border-radius:9px;color:var(--txt);font-size:14px}
+.side a:hover{background:var(--panel2);text-decoration:none}
+.side a.act{background:var(--panel2);box-shadow:inset 3px 0 0 var(--acc);font-weight:600}
+.side .n{width:22px;height:22px;border-radius:50%;background:var(--line);display:grid;place-items:center;font-size:12px;flex:none}
+.side a.act .n{background:var(--brand);color:#fff}
+.side .foot{margin:18px 8px 0;font-size:12px;color:var(--mut);border-top:1px solid var(--line);padding-top:12px}
+main{padding:24px clamp(16px,3vw,40px) 40px;max-width:1320px;width:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.crumbs{font-size:13px;color:var(--mut)}
+.lead{font-size:16px;color:var(--mut);max-width:80ch}
+.badge{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);color:var(--mut)}
+.hero{padding:34px clamp(18px,4vw,44px);border-radius:20px;background:var(--hero-bg);border:1px solid var(--line);position:relative;overflow:hidden}
+.hero h1{font-size:clamp(28px,4.2vw,46px)}
+.hero .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px;margin-top:14px}
+.mcard{display:flex;flex-direction:column;gap:6px;color:var(--txt);transition:.15s;border-left:4px solid var(--brand)}
+.kpi{border-left:4px solid var(--brand)}
+.mcard:hover{transform:translateY(-3px);border-color:var(--acc);text-decoration:none}
+.mcard .num{font-size:30px;font-weight:800;color:var(--acc)}
+.mcard h3{margin:0}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0;font-size:14px}
+.flow span.s{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:4px 12px}
+.titlerow{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.titlerow .acts{margin-left:auto;display:flex;gap:8px}
+details.card{margin:14px 0}
+details summary{cursor:pointer;font-weight:600}
+.sim{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;align-items:start;margin-top:14px}
+.ctrl{position:sticky;top:72px;max-height:calc(100vh - 90px);overflow:auto}
+.ctrl .grp{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:14px 0 6px;border-top:1px solid var(--line);padding-top:10px}
+.ctrl .grp:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.ctl{display:block;margin:8px 0;font-size:13.5px}
+.ctl-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ctl input[type=range]{width:100%;accent-color:var(--brand)}
+.ctl select{width:100%;margin-top:4px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px}
+.num{width:78px;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:3px 6px;font:inherit;font-size:13px;text-align:right}
+output{font-variant-numeric:tabular-nums;color:var(--link);font-weight:600;font-size:13px}
+.chk{display:flex;gap:8px;align-items:center;margin:8px 0;font-size:13.5px;cursor:pointer}
+.btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0;background:none;border:0;box-shadow:none}
+.fig{padding:8px}
+.stack{display:grid;gap:14px}
+.fighead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 4px 6px;font-size:13px;color:var(--mut);font-weight:500}
+.fighead .btn{padding:4px 12px;font-size:13px;color:var(--link);border-color:var(--link)}
+.fighead .btn:hover{background:var(--panel2)}
+#modal-body h3{margin:16px 0 4px;font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--link)}
+#modal-body p{text-align:justify}
+.fig.wide{grid-column:1/-1}
+#extra{margin-bottom:14px}
+#extra:empty{display:none}
+.res{margin-top:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:8px 0 12px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.kpi small{display:block;color:var(--mut);font-size:12px}
+.kpi b{font-size:19px;font-variant-numeric:tabular-nums}
+.kpi.good b{color:var(--pos)}.kpi.bad b{color:var(--neg)}
+.msg{padding:10px 14px;border-radius:10px;background:var(--panel2);border-left:4px solid var(--acc);margin:8px 0}
+.msg.good{border-color:var(--pos)}.msg.bad{border-color:var(--neg)}.msg.warn{border-color:var(--acc2)}
+.warn{color:var(--acc2)}
+table.t{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}
+table.t th,table.t td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+table.t th{background:var(--panel2)}
+.svgbox{padding:10px}
+.svgbox svg{width:100%;height:auto;max-height:260px;display:block}
+.svg-node{fill:var(--panel2);stroke:var(--line);stroke-width:2}
+.svg-t{fill:var(--txt);font-size:14px;font-weight:600}
+.svg-s{fill:var(--mut);font-size:11.5px}
+#vm{max-height:140px!important}
+.ana{background:var(--panel2);border-left:4px solid var(--acc2);border-radius:8px;padding:2px 14px 6px;margin:12px 0}
+.ana h3{margin:8px 0 4px}
+.ana ul{margin:6px 0 6px 18px;padding:0}
+.ana li{margin:4px 0}
+.pz-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px}
+.pz-cap{flex:1 1 260px;font-size:.92rem;color:var(--txt);min-height:2.6em}
+.pz-stg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.pz-stg span{font-size:.78rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+.pz-stg span.on{background:var(--acc2);border-color:var(--acc2);color:#262626;font-weight:600}
+.svg-lbl{fill:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
+.prog{height:10px;border-radius:99px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--pos))}
+fieldset.q{margin:12px 0;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+fieldset.q legend{padding:0 8px;font-weight:600}
+fieldset.q label{display:block;padding:4px 0;cursor:pointer}
+.fb{margin-top:6px;font-size:14px}
+#modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:80;display:grid;place-items:center;padding:16px}
+#modal[hidden]{display:none}
+#modal .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:760px;width:100%;max-height:88vh;overflow:auto;padding:22px;box-shadow:var(--shadow)}
+#modal .mh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.tut-hl{outline:3px solid var(--acc2);outline-offset:4px;border-radius:12px;position:relative;z-index:5}
+.tut-card{position:fixed;right:20px;bottom:20px;width:min(350px,calc(100vw - 40px));z-index:60;background:var(--panel);border:2px solid var(--acc2);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+footer{background:var(--brand-deep);color:#fff;margin-top:30px;padding:16px 20px;border-radius:16px;font-size:13px}
+.av{width:56px;height:56px;border-radius:50%;overflow:hidden;background:#fff;border:2px solid var(--acc);flex:none;display:block}
+.av img{width:170%;max-width:none;margin-left:-35%;margin-top:-17%;display:block}
+.av.sm{width:34px;height:34px;border-width:2px}
+.nach{display:flex;gap:12px;align-items:flex-start;margin:12px 0}
+.nach .bub{position:relative;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--acc2);border-radius:12px;padding:10px 14px;font-size:14.5px;max-width:80ch}
+.nach .bub b.who{color:var(--acc2)}
+.hero{display:flex;gap:24px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.hero .txt{flex:1 1 420px;min-width:0}
+.hero-img{flex:0 0 auto;text-align:center}
+.hero-img img{width:min(230px,60vw);border-radius:22px;background:#fff;border:3px solid var(--acc2);box-shadow:var(--shadow);display:block;margin:0 auto}
+.hero-img .bub{margin:0 auto 12px;max-width:240px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px 12px;font-size:14px}
+.about-img{float:right;width:150px;margin:0 0 10px 16px;border-radius:16px;background:#fff;border:3px solid var(--acc2)}
+.tut-card .who{display:flex;gap:10px;align-items:center;margin-bottom:6px}
+@media(max-width:1000px){.sim{grid-template-columns:1fr}.ctrl{position:static;max-height:none}}
+@media(max-width:900px){
+ .layout{grid-template-columns:1fr}
+ .burger{display:inline-block}
+ .side{position:fixed;left:0;top:56px;bottom:0;width:260px;height:auto;transform:translateX(-102%);transition:.2s;z-index:25}
+ .side.open{transform:none;box-shadow:var(--shadow)}
+ .figs{grid-template-columns:1fr}
+ .brand small{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <button class="btn burger" id="burger" aria-label="Menú">☰</button>
+  <a class="brand" href="#/" style="display:flex;align-items:center;gap:10px"><span class="av sm"><img src="assets/nachito.jpeg" alt="Nachito, mascota de la Universidad Nacional de Colombia"></span>NeuroLin<small>Simulador de neuronas · Modelos Lineales</small></a>
+  <span class="spacer"></span>
+  <button class="btn sm" id="btn-theme" title="Cambiar tema">☀ / ☾</button>
+</header>
+<div class="layout">
+  <aside class="side" id="side"></aside>
+  <main id="view"></main>
+</div>
+<div id="modal" hidden><div class="box"><div class="mh"><h2 id="modal-title" style="margin:0"></h2><button class="btn sm" id="modal-close">Cerrar ✕</button></div><div id="modal-body"></div></div></div>
+<noscript><p style="padding:20px">Este simulador requiere JavaScript.</p></noscript>
+
+<script>
+'use strict';
+/* ============ utilidades ============ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const f=(x,d=3)=>Number.isFinite(x)?x.toFixed(d):'—';
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const sig=z=>1/(1+Math.exp(-z));
+const dk=()=>document.documentElement.dataset.theme==='dark';
+const C={get a(){return dk()?'#2bb4cb':'#005e6f'},get b(){return dk()?'#f2bf2e':'#d49d00'},get pos(){return dk()?'#36b377':'#19784b'},get neg(){return dk()?'#ff6b5e':'#aa0c00'},get gray(){return dk()?'#9fb3a8':'#6b6b6b'}};
+const hexA=(h,a)=>`rgba(${parseInt(h.slice(1,3),16)},${parseInt(h.slice(3,5),16)},${parseInt(h.slice(5,7),16)},${a})`;
+function rng(seed){let a=(seed>>>0)||1;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function gauss(r){let u=0;while(!u)u=r();const v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+const T=(s,d=false)=>`<span class="tex" data-tex="${esc(s)}" data-d="${d?1:0}"></span>`;
+function renderTex(root){$$('.tex',root).forEach(el=>{const s=el.dataset.tex;if(window.katex){try{katex.render(s,el,{displayMode:el.dataset.d==='1',throwOnError:false})}catch(e){el.textContent=s}}else el.textContent=s})}
+const nachito=txt=>`<div class="nach"><span class="av"><img src="assets/nachito.jpeg" alt="Nachito"></span><div class="bub"><b class="who">Nachito:</b> ${txt}</div></div>`;
+const TIPS={
+ intro:'¡Bienvenido! La conexión entre neuronas ocurre en la sinapsis. Los círculos verdes marcan las partes que la forman y donde se guarda el aprendizaje: un peso w más grande es una sinapsis más fuerte.',
+ neurona:'¡Hola! Las líneas verdes son sinapsis excitadoras y las rojas, inhibidoras. Mira cómo el soma se “enciende” cuando z supera el umbral.',
+ predice:'Una neurona sin activación es una regresión lineal. Ajusta w y b a mano… ¡y luego deja que MCO te muestre el mínimo!',
+ decide:'Mueve la frontera y fíjate en los círculos rojos: son los errores. Subir el umbral t te hace más exigente.',
+ aprende:'Si la tasa de aprendizaje es muy grande, la neurona se pasa del mínimo en cada paso. ¡Atrévete a hacerla diverger!',
+ generaliza:'Aprender no es memorizar: compara el error de entrenamiento con el de prueba y usa λ para domar el sobreajuste.',
+ reto:'La recta de mínimos cuadrados siempre pasa por el centroide (x̄, ȳ). ¡Úsalo como pista!'
+};
+const kpi=(l,v,c='')=>`<div class="kpi ${c}"><small>${l}</small><b>${v}</b></div>`;
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+function solve(A,b){const n=b.length;A=A.map((r,i)=>[...r,b[i]]);for(let i=0;i<n;i++){let p=i;for(let r=i+1;r<n;r++)if(Math.abs(A[r][i])>Math.abs(A[p][i]))p=r;[A[i],A[p]]=[A[p],A[i]];const d=A[i][i]||1e-12;for(let r=i+1;r<n;r++){const m=A[r][i]/d;for(let c=i;c<=n;c++)A[r][c]-=m*A[i][c]}}const x=Array(n).fill(0);for(let i=n-1;i>=0;i--){let s=A[i][n];for(let c=i+1;c<n;c++)s-=A[i][c]*x[c];x[i]=s/(A[i][i]||1e-12)}return x}
+
+/* ============ gráficos (Plotly) ============ */
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+function lay(o={}){
+  const g=css('--grid');
+  const ax=(x={})=>Object.assign({gridcolor:g,zerolinecolor:g,linecolor:g},x);
+  return Object.assign({paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{color:css('--txt'),size:12},margin:{l:55,r:20,t:40,b:48},legend:{orientation:'h',y:-0.22},hovermode:'closest'},o,{xaxis:ax(o.xaxis),yaxis:ax(o.yaxis)});
+}
+function plot(id,data,layout){
+  const el=document.getElementById(id);if(!el)return;
+  if(!window.Plotly){el.innerHTML='<p class="warn" style="padding:20px">No se pudo cargar Plotly (revisa tu conexión a internet).</p>';return}
+  Plotly.react(el,data,layout,{responsive:true,displaylogo:false,modeBarButtonsToRemove:['lasso2d','select2d']});
+}
+const ttl=t=>({text:t,font:{size:14}});
+
+/* ============ datos y modelos ============ */
+function dataLin(n,sigma,seed,a=2,b=1.5){const r=rng(seed*7919+13);const x=[],y=[];for(let i=0;i<n;i++){const xi=10*r();x.push(xi);y.push(a+b*xi+sigma*gauss(r))}return{x,y}}
+function ols(x,y){const mx=mean(x),my=mean(y);let sxy=0,sxx=0;for(let i=0;i<x.length;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2}const w=sxy/sxx;return{w,b:my-w*mx,mx,my}}
+const mse=(x,y,w,b)=>{let s=0;for(let i=0;i<x.length;i++){const e=y[i]-(w*x[i]+b);s+=e*e}return s/x.length};
+const r2=(x,y,w,b)=>{const my=mean(y);let sst=0;y.forEach(v=>sst+=(v-my)**2);return 1-mse(x,y,w,b)*y.length/sst};
+
+function dataBlobs(n,d,s,seed){const r=rng(seed*104729+5);const X=[],y=[];for(let c=0;c<2;c++)for(let i=0;i<n;i++){const sg=c?1:-1;X.push([sg*d/2+s*gauss(r),sg*d/3+s*gauss(r)]);y.push(c)}return{X,y}}
+function trainLogit(X,y,it=2500,lr=0.3){let w1=0,w2=0,b=0;const n=y.length;for(let k=0;k<it;k++){let g1=0,g2=0,gb=0;for(let i=0;i<n;i++){const e=sig(w1*X[i][0]+w2*X[i][1]+b)-y[i];g1+=e*X[i][0];g2+=e*X[i][1];gb+=e}w1-=lr*g1/n;w2-=lr*g2/n;b-=lr*gb/n}return{w1,w2,b}}
+
+function gdSteps(S,lr,k){
+  const {x,y}=S.D,n=x.length;
+  for(let i=0;i<k&&!S.diverged;i++){
+    let [w,b]=S.path[S.path.length-1],gw=0,gb=0;
+    for(let j=0;j<n;j++){const e=w*x[j]+b-y[j];gw+=e*x[j];gb+=e}
+    w-=lr*2*gw/n;b-=lr*2*gb/n;
+    const L=mse(x,y,w,b);S.path.push([w,b]);S.losses.push(L);
+    if(!Number.isFinite(L)||L>1e12)S.diverged=true;
+  }
+}
+function stopTimer(S){if(S&&S.timer){clearInterval(S.timer);S.timer=null}}
+
+function fitPoly(xtr,ytr,d,lam,type){
+  const n=xtr.length,X=xtr.map(v=>Array.from({length:d},(_,k)=>Math.pow(v,k+1)));
+  const mu=[],sd=[];
+  for(let j=0;j<d;j++){const col=X.map(r=>r[j]);const m=mean(col);let v=0;col.forEach(c=>v+=(c-m)**2);v=Math.sqrt(v/n);mu.push(m);sd.push(v>1e-12?v:1)}
+  const Z=X.map(r=>r.map((v,j)=>(v-mu[j])/sd[j])),ym=mean(ytr),yc=ytr.map(v=>v-ym);
+  let beta=Array(d).fill(0);
+  if(type==='ridge'){
+    const A=Array.from({length:d},()=>Array(d).fill(0)),rhs=Array(d).fill(0);
+    for(let i=0;i<n;i++)for(let j=0;j<d;j++){rhs[j]+=Z[i][j]*yc[i]/n;for(let k=0;k<d;k++)A[j][k]+=Z[i][j]*Z[i][k]/n}
+    for(let j=0;j<d;j++)A[j][j]+=lam+1e-9;
+    beta=solve(A,rhs);
+  }else{
+    const r=yc.slice();
+    for(let it=0;it<1500;it++){
+      let delta=0;
+      for(let j=0;j<d;j++){
+        let rho=0;for(let i=0;i<n;i++)rho+=Z[i][j]*r[i];rho=rho/n+beta[j];
+        const nb=Math.sign(rho)*Math.max(Math.abs(rho)-lam,0),dj=nb-beta[j];
+        if(dj!==0){for(let i=0;i<n;i++)r[i]-=Z[i][j]*dj;beta[j]=nb;delta=Math.max(delta,Math.abs(dj))}
+      }
+      if(delta<1e-9)break;
+    }
+  }
+  const predict=x=>{let s=ym;for(let j=0;j<d;j++)s+=beta[j]*((Math.pow(x,j+1)-mu[j])/sd[j]);return s};
+  return{beta,predict,nz:beta.filter(b=>Math.abs(b)>1e-8).length};
+}
+const mseF=(p,x,y)=>{let s=0;for(let i=0;i<x.length;i++)s+=(y[i]-p(x[i]))**2;return s/x.length};
+
+/* ============ activaciones ============ */
+const ACT={
+  step:{n:'Escalón',f:z=>z>=0?1:0,tex:String.raw`\varphi(z)=\mathbb{1}[z\ge 0]`},
+  sigmoid:{n:'Sigmoide',f:sig,tex:String.raw`\varphi(z)=\dfrac{1}{1+e^{-z}}`},
+  tanh:{n:'Tangente hiperbólica',f:Math.tanh,tex:String.raw`\varphi(z)=\tanh z`},
+  relu:{n:'ReLU',f:z=>Math.max(0,z),tex:String.raw`\varphi(z)=\max(0,z)`},
+  lin:{n:'Identidad (lineal)',f:z=>z,tex:String.raw`\varphi(z)=z`}
+};
+const sgn=v=>v<0?`(${f(v,2)})`:f(v,2);
+function neuronSVG(x,w,b,z,a){
+  const ys=[45,115,185],inten=clamp(Math.abs(a),0,1),sub=['₁','₂','₃'];
+  const lines=ys.map((y,i)=>`<line x1="97" y1="${y}" x2="292" y2="115" stroke-width="${(1+Math.abs(w[i])*2.2).toFixed(1)}" style="stroke:var(${w[i]>=0?'--pos':'--neg'})" opacity=".85"/><text x="195" y="${(y+115)/2-6}" text-anchor="middle" class="svg-s">w${sub[i]}=${f(w[i],1)}</text>`).join('');
+  const ins=ys.map((y,i)=>`<circle cx="75" cy="${y}" r="21" class="svg-node"/><text x="75" y="${y-2}" text-anchor="middle" class="svg-t">x${sub[i]}</text><text x="75" y="${y+12}" text-anchor="middle" class="svg-s">${f(x[i],1)}</text>`).join('');
+  return `<div class="card svgbox"><div class="fighead"><span>Diagrama de la neurona</span><button class="btn sm" data-info="d" title="Interpretación académica del diagrama" aria-label="Interpretación del diagrama">ⓘ Interpretación</button></div><svg viewBox="0 0 540 240" role="img" aria-label="Diagrama de la neurona">
+  <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--acc)"/></marker></defs>
+  ${lines}${ins}
+  <line x1="330" y1="48" x2="330" y2="76" style="stroke:var(--mut)" stroke-width="${(1+Math.abs(b)*1.5).toFixed(1)}"/>
+  <circle cx="330" cy="34" r="16" class="svg-node"/><text x="330" y="31" text-anchor="middle" class="svg-t">b</text><text x="330" y="43" text-anchor="middle" class="svg-s">${f(b,1)}</text>
+  <circle cx="330" cy="115" r="42" style="fill:var(--acc);stroke:var(--acc);stroke-width:3;fill-opacity:${(0.12+0.78*inten).toFixed(2)}"/>
+  <text x="330" y="112" text-anchor="middle" class="svg-t">Σ → φ</text><text x="330" y="130" text-anchor="middle" class="svg-s">z=${f(z,2)}</text>
+  <line x1="374" y1="115" x2="470" y2="115" style="stroke:var(--acc)" stroke-width="${(2+3*inten).toFixed(1)}" marker-end="url(#arr)"/>
+  <text x="425" y="100" text-anchor="middle" class="svg-t">a=${f(a,2)}</text>
+  <text x="75" y="228" text-anchor="middle" class="svg-lbl">dendritas</text>
+  <text x="195" y="228" text-anchor="middle" class="svg-lbl">sinapsis (pesos)</text>
+  <text x="330" y="228" text-anchor="middle" class="svg-lbl">soma</text>
+  <text x="440" y="228" text-anchor="middle" class="svg-lbl">axón (salida)</text>
+  </svg></div>`;
+}
+
+/* ============ esquemas del módulo 0: anatomía, sinapsis y redes ============ */
+const PARTES={
+ dendritas:{n:'Dendritas y espinas dendríticas',cs:'Sí (lado postsináptico)',art:'Entradas xᵢ y pesos wᵢ',
+  fn:'Reciben las señales de otras neuronas. Las espinas dendríticas albergan la mayoría de las sinapsis excitatorias y sus receptores.',
+  conex:'Sí. Forman el lado <b>postsináptico</b> de la conexión.',
+  apr:'Aquí se fortalecen o debilitan las sinapsis (plasticidad sináptica): cambian el número y la sensibilidad de los receptores.'},
+ soma:{n:'Soma (cuerpo celular)',cs:'No (integra)',art:'Suma z = Σ wᵢxᵢ + b',
+  fn:'Integra los potenciales postsinápticos excitatorios e inhibitorios que llegan (sumación espacial y temporal). Contiene el núcleo.',
+  conex:'No directamente: integra lo que reciben las dendritas, no forma la sinapsis.',
+  apr:'Resume el efecto de todas las sinapsis. El núcleo permite sintetizar las proteínas que consolidan los cambios duraderos (memoria a largo plazo).'},
+ cono:{n:'Cono axónico (segmento inicial del axón)',cs:'No (decide)',art:'Umbral: sesgo b y activación φ',
+  fn:'Región donde se genera el potencial de acción cuando la suma de entradas alcanza el umbral.',
+  conex:'No directamente: decide si habrá una señal que transmitir.',
+  apr:'Su umbral fija la excitabilidad de la neurona y puede modificarse con la experiencia, como el sesgo b, que también se aprende.'},
+ axon:{n:'Axón',cs:'No (conduce)',art:'Salida a = φ(z)',
+  fn:'Conduce el potencial de acción, de todo o nada, sin perder amplitud hasta los terminales.',
+  conex:'No: lleva la señal hasta el punto de conexión.',
+  apr:'El aprendizaje no se guarda aquí sino en las sinapsis; el axón solo determina cuándo llegan los disparos.'},
+ mielina:{n:'Vaina de mielina y nodos de Ranvier',cs:'No (acelera)',art:'Sin equivalente directo',
+  fn:'La mielina, formada por células gliales, aísla el axón; el impulso “salta” de un nodo de Ranvier al siguiente y viaja más rápido.',
+  conex:'No: acelera la llegada de la señal a los terminales.',
+  apr:'Hay evidencia de que la actividad puede modificar la mielinización y, con ello, la velocidad de conducción.'},
+ terminales:{n:'Terminales axónicos (botones sinápticos)',cs:'Sí (lado presináptico)',art:'Salida a de la neurona emisora',
+  fn:'Cuando llega el potencial de acción entra calcio y las vesículas liberan neurotransmisor a la hendidura sináptica.',
+  conex:'Sí. Forman el lado <b>presináptico</b> de la conexión.',
+  apr:'La cantidad de neurotransmisor liberada cambia con la experiencia y modifica la fuerza de la sinapsis.'}
+};
+const PARTE_ORDEN=['dendritas','soma','cono','axon','mielina','terminales'];
+function anatomySVG(P){
+  const sel=k=>P.parte===k,dim=k=>(P.parte==='todas'||sel(k))?1:0.25;
+  const st=k=>sel(k)?'var(--acc2)':'var(--txt)',sw=(k,b)=>sel(k)?b+1.5:b;
+  const lab=(k,x,y,t,x2,y2)=>`<line x1="${x}" y1="${y<120?y+6:y-14}" x2="${x2}" y2="${y2}" style="stroke:var(--mut)" stroke-width="1" opacity="${dim(k)}"/><text x="${x}" y="${y}" text-anchor="middle" style="font-size:12.5px;font-weight:${sel(k)?700:500};fill:${sel(k)?'var(--acc2)':'var(--txt)'}" opacity="${dim(k)}">${t}</text>`;
+  const spines=[[120,66],[132,98],[100,112],[110,140],[125,182],[135,160]];
+  const dpaths=['M218 108 L168 82 L120 66','M168 82 L132 98','M222 125 L150 125 L100 112','M150 125 L110 140','M220 142 L170 170 L125 182','M170 170 L135 160'];
+  const ring=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="none" style="stroke:var(--pos)" stroke-width="2" stroke-dasharray="3 3"/>`;
+  const dend=`<g opacity="${dim('dendritas')}">${dpaths.map(d=>`<path d="${d}" fill="none" stroke-linecap="round" stroke-linejoin="round" style="stroke:${st('dendritas')}" stroke-width="${sw('dendritas',2.5)}"/>`).join('')}${spines.map(s=>`<circle cx="${s[0]}" cy="${s[1]}" r="3.5" style="fill:${st('dendritas')}"/>${P.conex?ring(s[0],s[1],9):''}`).join('')}</g>`;
+  const soma=`<g opacity="${dim('soma')}"><circle cx="250" cy="125" r="34" style="fill:var(--panel2);stroke:${st('soma')}" stroke-width="${sw('soma',2.5)}"/><circle cx="250" cy="125" r="12" style="fill:var(--mut)" fill-opacity=".5"/></g>`;
+  const cono=`<polygon points="280,108 312,121 312,129 280,142" style="fill:var(--panel2);stroke:${st('cono')}" stroke-width="${sw('cono',2.5)}" opacity="${dim('cono')}"/>`;
+  const axon=`<line x1="312" y1="125" x2="560" y2="125" style="stroke:${st('axon')}" stroke-width="${sw('axon',3)}" opacity="${dim('axon')}"/>`;
+  const myel=`<g opacity="${dim('mielina')}">${[326,398,470].map(x=>`<rect x="${x}" y="113" width="60" height="24" rx="12" style="fill:var(--acc);stroke:${st('mielina')}" fill-opacity=".28" stroke-width="${sw('mielina',2)}"/>`).join('')}${sel('mielina')?[392,464].map(x=>`<circle cx="${x}" cy="125" r="5" style="fill:var(--acc2)"/>`).join(''):''}</g>`;
+  const bulbs=[[622,95],[628,125],[622,155]];
+  const term=`<g opacity="${dim('terminales')}">${bulbs.map(b=>`<line x1="560" y1="125" x2="${b[0]-10}" y2="${b[1]}" style="stroke:${st('terminales')}" stroke-width="${sw('terminales',2)}"/><circle cx="${b[0]}" cy="${b[1]}" r="10" style="fill:var(--acc2);stroke:${st('terminales')}" fill-opacity=".6" stroke-width="${sw('terminales',2)}"/>${P.conex?ring(b[0],b[1],16):''}`).join('')}</g>`;
+  const next=`<path d="M660 68 Q684 125 660 182" fill="none" style="stroke:var(--mut)" stroke-width="2.5" stroke-dasharray="5 4"/><text x="710" y="122" text-anchor="middle" class="svg-s">neurona</text><text x="710" y="138" text-anchor="middle" class="svg-s">siguiente</text>${P.conex?`<text x="650" y="204" text-anchor="middle" style="font-size:11.5px;fill:var(--pos);font-weight:600">sinapsis</text>`:''}`;
+  const leg=P.conex?`<text x="24" y="18" style="font-size:11.5px;fill:var(--pos)">Círculos verdes punteados: partes que forman la conexión (espinas dendríticas y terminales)</text>`:'';
+  return `<div class="card svgbox"><div class="fighead"><span>Anatomía de una neurona</span><button class="btn sm" data-info="a" title="Interpretación académica del esquema" aria-label="Interpretación del esquema de la neurona">ⓘ Interpretación</button></div><svg viewBox="0 0 760 250" role="img" aria-label="Esquema de la anatomía de una neurona">${leg}${dend}${soma}${cono}${axon}${myel}${term}${next}${lab('soma',250,44,'Soma',250,88)}${lab('mielina',400,44,'Vaina de mielina',400,112)}${lab('terminales',610,44,'Terminales axónicos',618,84)}${lab('dendritas',135,232,'Dendritas',130,192)}${lab('cono',285,232,'Cono axónico',296,144)}${lab('mielina',400,232,'Nodos de Ranvier',392,130)}${lab('axon',548,232,'Axón',548,130)}<g id="pz" pointer-events="none"></g></svg>
+  <div class="pz-bar"><button class="btn sm primary" data-play="1">▶ Ver el impulso eléctrico</button><button class="btn sm" data-play="0.5">Cámara lenta</button><span class="pz-cap" id="pz-cap" aria-live="polite">Pulsa el botón para ver cómo viaja la señal desde las dendritas hasta los terminales.</span></div>
+  <div class="pz-stg"><span data-st="0">1 · Dendritas y soma</span><span data-st="1">2 · Cono: umbral</span><span data-st="2">3 · Axón</span><span data-st="3">4 · Terminales</span></div>
+  <svg id="vm" viewBox="0 0 760 120" role="img" aria-label="Potencial de membrana en el tiempo: sumación, umbral y potencial de acción"><text x="50" y="10" class="svg-s">Potencial de membrana en el cono axónico (esquema, mV)</text>
+   <line x1="50" y1="${(100-(-55+90)/140*90).toFixed(1)}" x2="705" y2="${(100-(-55+90)/140*90).toFixed(1)}" style="stroke:var(--neg)" stroke-dasharray="5 4" stroke-width="1.2"/><text x="709" y="${(100-(-55+90)/140*90+4).toFixed(1)}" class="svg-s" style="fill:var(--neg)" font-size="10">umbral</text>
+   <line x1="50" y1="${(100-(-70+90)/140*90).toFixed(1)}" x2="705" y2="${(100-(-70+90)/140*90).toFixed(1)}" style="stroke:var(--mut)" stroke-dasharray="2 4" stroke-width="1"/><text x="709" y="${(100-(-70+90)/140*90+4).toFixed(1)}" class="svg-s" font-size="10">reposo</text>
+   <line x1="50" y1="12" x2="50" y2="104" style="stroke:var(--line)"/><line x1="50" y1="104" x2="705" y2="104" style="stroke:var(--line)"/><text x="378" y="118" text-anchor="middle" class="svg-s">tiempo →</text>
+   <path id="vm-path" d="" fill="none" style="stroke:var(--link)" stroke-width="2.5" stroke-linejoin="round"/><circle id="vm-dot" r="5" cx="50" cy="${(100-20/140*90).toFixed(1)}" style="fill:var(--acc2);stroke:var(--txt)" stroke-width="1.5"/></svg></div>`;
+}
+/* animación del impulso: dendritas → soma → cono → axón (saltatorio) → terminales */
+const PZ={id:0};
+function playPulse(card,speed){
+  const NS='http://www.w3.org/2000/svg',svg=card.querySelector('svg[role="img"]'),g=card.querySelector('#pz'),cap=card.querySelector('#pz-cap'),path=card.querySelector('#vm-path'),dot=card.querySelector('#vm-dot'),chips=[...card.querySelectorAll('[data-st]')];
+  const my=++PZ.id;g.innerHTML='';
+  const mk=(tag,at)=>{const e=document.createElementNS(NS,tag);Object.entries(at).forEach(([k,v])=>e.setAttribute(k,v));g.appendChild(e);return e};
+  const gold='fill:var(--acc2);stroke:var(--txt)';
+  const routes=[[[120,66],[168,82],[218,108]],[[132,98],[168,82],[218,108]],[[100,112],[150,125],[222,125]],[[110,140],[150,125],[222,125]],[[125,182],[170,170],[220,142]],[[135,160],[170,170],[220,142]]];
+  const lenOf=r=>{let L=0;for(let i=1;i<r.length;i++)L+=Math.hypot(r[i][0]-r[i-1][0],r[i][1]-r[i-1][1]);return L};
+  const at=(r,f)=>{const L=lenOf(r);let d=f*L;for(let i=1;i<r.length;i++){const s=Math.hypot(r[i][0]-r[i-1][0],r[i][1]-r[i-1][1]);if(d<=s||i===r.length-1){const u=Math.min(1,d/s);return[r[i-1][0]+u*(r[i][0]-r[i-1][0]),r[i-1][1]+u*(r[i][1]-r[i-1][1])]}d-=s}};
+  const somaG=mk('circle',{cx:250,cy:125,r:34,style:'fill:var(--acc2)',opacity:0});
+  const conoG=mk('polygon',{points:'280,108 312,121 312,129 280,142',style:'fill:var(--acc2)',opacity:0});
+  const dd=routes.map(()=>mk('circle',{r:5,style:gold,'stroke-width':1.5,opacity:0}));
+  const rings=[319,392,464,545].map(x=>mk('circle',{cx:x,cy:125,r:6,fill:'none',style:'stroke:var(--acc2)','stroke-width':2,opacity:0}));
+  const ax=mk('circle',{cx:312,cy:125,r:6.5,style:gold,'stroke-width':1.5,opacity:0});
+  const bulbs=[[622,95],[628,125],[622,155]],bg=bulbs.map(b=>mk('circle',{cx:b[0],cy:b[1],r:10,style:'fill:var(--acc2)',opacity:0}));
+  const rel=[];bulbs.forEach((b,i)=>{for(let k=0;k<3;k++)rel.push({b,k:i*3+k,e:mk('circle',{r:2.8,style:'fill:var(--pos)',opacity:0})})});
+  const ss=(a,b,t)=>{const u=Math.min(1,Math.max(0,(t-a)/(b-a)));return u*u*(3-2*u)};
+  const vOf=t=>{if(t<2.45){let v=-70;for(let k=0;k<6;k++)v+=2.5*ss(0.7+0.28*k,1.05+0.28*k,t);return v}
+    if(t<2.7)return -55+95*(1-Math.pow(1-(t-2.45)/0.25,2));if(t<3.1)return 40-120*ss(2.7,3.1,t);if(t<4.0)return -80+10*ss(3.1,4.0,t);return -70};
+  const T=6.9,X=t=>50+t/T*655,Y=v=>100-(v+90)/140*90;
+  const msgs=['<b>1 · Dendritas y soma.</b> Las señales llegan por las espinas dendríticas; cada una produce un pequeño cambio (PPSE) y el soma las suma.','<b>2 · Cono axónico.</b> La suma alcanza el umbral (≈ −55 mV) y se dispara el potencial de acción.','<b>3 · Axón.</b> El impulso es de todo o nada; con mielina salta de nodo en nodo y viaja más rápido.','<b>4 · Terminales.</b> Llega el impulso y se libera neurotransmisor hacia la neurona siguiente (sinapsis).'];
+  const nodeT=[2.75,3.5,4.25,5.0],nodeX=[319,392,464,545];
+  const t0=performance.now();let last=-1;
+  function frame(now){
+    if(my!==PZ.id||!card.isConnected)return;
+    const t=(now-t0)/1000*speed;
+    const st=t<2.45?0:t<2.75?1:t<5.2?2:t<T?3:4;
+    if(st!==last){last=st;chips.forEach((c,i)=>c.classList.toggle('on',i===st));cap.innerHTML=st<4?msgs[st]:'<b>Fin del recorrido.</b> Aprender no cambia la forma del impulso: cambia la fuerza de la conexión en la sinapsis (Hebb).'}
+    routes.forEach((r,k)=>{const s=0.3+0.28*k,f=(t-s)/0.7;if(f>=0&&f<=1){const p=at(r,f);dd[k].setAttribute('cx',p[0]);dd[k].setAttribute('cy',p[1]);dd[k].setAttribute('opacity',1)}else dd[k].setAttribute('opacity',0)});
+    const acc=Math.min(1,Math.max(0,(vOf(Math.min(t,2.45))+70)/15));
+    somaG.setAttribute('opacity',(t<2.45?0.45*acc:0.45*(1-ss(2.7,3.4,t))).toFixed(3));
+    conoG.setAttribute('opacity',t>=2.45&&t<3.4?(0.9*(1-ss(2.9,3.4,t))).toFixed(3):0);
+    let x=null;
+    if(t>=nodeT[0]){x=nodeX[0];for(let k=0;k<3;k++){const a=nodeT[k+1]-0.22;if(t>=a)x=nodeX[k]+(nodeX[k+1]-nodeX[k])*ss(a,nodeT[k+1],t);}
+      if(t>=nodeT[3]+0.3)x=545+15*ss(nodeT[3]+0.3,5.2,t)}
+    if(x!==null&&t<5.3){ax.setAttribute('cx',x);ax.setAttribute('opacity',1)}else ax.setAttribute('opacity',0);
+    rings.forEach((r,k)=>{const u=(t-nodeT[k])/0.5;if(u>=0&&u<=1){r.setAttribute('r',6+14*u);r.setAttribute('opacity',(1-u).toFixed(3))}else r.setAttribute('opacity',0)});
+    bg.forEach(b=>b.setAttribute('opacity',t>=5.2&&t<6.6?(0.65*(1-ss(5.8,6.6,t))).toFixed(3):0));
+    rel.forEach(o=>{const f=(t-5.35-o.k*0.07)/0.9;if(f>=0&&f<=1){o.e.setAttribute('cx',o.b[0]+12+f*(646-o.b[0]-12));o.e.setAttribute('cy',o.b[1]+(o.k%3-1)*10*f);o.e.setAttribute('opacity',(1-f*0.5).toFixed(3))}else o.e.setAttribute('opacity',0)});
+    let d='';for(let s=0;s<=Math.min(t,T);s+=0.03)d+=(d?'L':'M')+X(s).toFixed(1)+' '+Y(vOf(s)).toFixed(1);
+    path.setAttribute('d',d);const tc=Math.min(t,T);dot.setAttribute('cx',X(tc));dot.setAttribute('cy',Y(vOf(tc)));
+    if(t<T+0.3)requestAnimationFrame(frame);
+    else{chips.forEach(c=>c.classList.remove('on'))}
+  }
+  requestAnimationFrame(frame);
+}
+function synapseSVG(P,w,sg,n){
+  const nv=Math.round(2+8*w),nr=Math.round(2+8*w),nt=Math.round(12*w),tc=sg>0?'var(--pos)':'var(--neg)';
+  const ves=Array.from({length:10},(_,i)=>{const on=i<nv;return `<circle cx="${90+30*i}" cy="${i%2?80:104}" r="9" style="fill:${on?'var(--acc2)':'none'};stroke:var(--acc2)" fill-opacity=".75" stroke-width="1.5" stroke-dasharray="${on?'0':'3 3'}" opacity="${on?1:.45}"/>`}).join('');
+  const nts=Array.from({length:nt},(_,i)=>`<circle cx="${70+i*29+((i*7)%5)*3}" cy="${142+((i*5)%4)*7}" r="2.8" style="fill:${tc}"/>`).join('');
+  const rec=Array.from({length:10},(_,i)=>{const on=i<nr;return `<rect x="${84+30*i}" y="171" width="12" height="15" rx="3" style="fill:${on?tc:'none'};stroke:${tc}" stroke-width="1.5" stroke-dasharray="${on?'0':'3 3'}" opacity="${on?1:.45}"/>`}).join('');
+  const ld=(y,x2,y2,t)=>`<line x1="426" y1="${y-4}" x2="${x2}" y2="${y2}" style="stroke:var(--mut)" stroke-width="1"/><text x="432" y="${y}" style="font-size:12.5px;fill:var(--txt)">${t}</text>`;
+  const cx=380,len=300*w,x0=sg>0?cx:cx-len;
+  return `<div class="card svgbox"><div class="fighead"><span>La conexión: la sinapsis química</span><button class="btn sm" data-info="b" title="Interpretación académica del esquema" aria-label="Interpretación del esquema de la sinapsis">ⓘ Interpretación</button></div><svg viewBox="0 0 760 352" role="img" aria-label="Esquema de una sinapsis química">
+  <text x="225" y="18" text-anchor="middle" class="svg-s">↓ llega el potencial de acción</text>
+  <path d="M40 74 Q40 30 84 30 H366 Q410 30 410 74 V130 H40Z" style="fill:var(--panel2);stroke:var(--txt)" stroke-width="2"/>
+  <path d="M40 170 H410 V226 Q410 270 366 270 H84 Q40 270 40 226Z" style="fill:var(--panel2);stroke:var(--txt)" stroke-width="2"/>
+  ${ves}${nts}${rec}
+  ${ld(54,412,56,'Terminal presináptico (axón)')}${ld(96,372,100,'Vesículas con neurotransmisor')}${ld(152,412,150,'Hendidura sináptica (≈ 20–40 nm)')}${ld(200,374,180,'Receptores postsinápticos')}${ld(250,404,244,'Dendrita o espina postsináptica')}
+  <text x="40" y="296" style="font-size:12.5px;font-weight:600;fill:var(--txt)">Respuesta postsináptica relativa (${sg>0?'PPSE':'PPSI'})</text>
+  <text x="720" y="296" text-anchor="end" style="font-size:12.5px;fill:${tc};font-weight:600">w = ${f(w,2)} → ${sg>0?'+':'−'}${f(w,2)}</text>
+  <line x1="80" y1="314" x2="680" y2="314" style="stroke:var(--line)" stroke-width="1"/>
+  <rect x="${x0}" y="306" width="${len}" height="16" rx="3" style="fill:${tc}"/>
+  <line x1="${cx}" y1="300" x2="${cx}" y2="330" style="stroke:var(--txt)" stroke-width="1.5"/>
+  <text x="80" y="345" text-anchor="middle" class="svg-s">−1</text><text x="${cx}" y="345" text-anchor="middle" class="svg-s">0</text><text x="680" y="345" text-anchor="middle" class="svg-s">+1</text>
+  </svg></div>`;
+}
+function networkSVG(P,w,sg,n){
+  const yIn=[90,165,240],yHid=[70,130,190,250],yOut=[115,215],rc=sg>0?'var(--pos)':'var(--neg)';
+  const ri=P.ri-1,rh=P.rh-1,ro=P.ro-1;
+  const panel=(ox,bio)=>{
+    const X=[ox+50,ox+170,ox+290];let base='',route='';
+    const edge=(x1,y1,x2,y2,on)=>{const l=on?`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${rc}" stroke-width="${(1.5+6*w).toFixed(1)}" opacity=".95"/>`:`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:var(--mut)" stroke-width="1.2" opacity=".45"/>`;if(on)route+=l;else base+=l};
+    for(let i=0;i<3;i++)for(let j=0;j<4;j++)edge(X[0],yIn[i],X[1],yHid[j],i===ri&&j===rh);
+    for(let j=0;j<4;j++)for(let k=0;k<2;k++)edge(X[1],yHid[j],X[2],yOut[k],j===rh&&k===ro);
+    const sc=bio?'var(--acc2)':'var(--link)';
+    const node=(x,y,on,t)=>`<circle cx="${x}" cy="${y}" r="15" style="fill:var(--panel2)"/><circle cx="${x}" cy="${y}" r="15" style="fill:${on?rc:'var(--panel2)'};stroke:${on?rc:sc}" fill-opacity="${on?0.3:1}" stroke-width="${on?3:2}"/><text x="${x}" y="${y+4}" text-anchor="middle" style="font-size:11px;fill:var(--txt);font-weight:600">${t}</text>`;
+    const sub=['₁','₂','₃','₄'];
+    const nodes=yIn.map((y,i)=>node(X[0],y,i===ri,bio?'S'+(i+1):'x'+sub[i])).join('')+yHid.map((y,j)=>node(X[1],y,j===rh,bio?'I'+(j+1):'h'+sub[j])).join('')+yOut.map((y,k)=>node(X[2],y,k===ro,bio?'M'+(k+1):'ŷ'+sub[k])).join('');
+    const mx=ox+170,my=46;
+    const wl=bio?'Ruta: '+(n===0?'sinapsis sin reforzar':(sg>0?'sinapsis potenciada':'inhibición reforzada')):`Ruta: peso w = ${f(sg*w,2)}`;
+    const cl=bio?['neuronas sensoriales','interneuronas','neuronas motoras']:['entradas','capa oculta','salida'];
+    return `${base}${route}${nodes}<text x="${mx}" y="${my}" text-anchor="middle" style="font-size:11px;font-weight:600;fill:${rc};paint-order:stroke;stroke:var(--panel);stroke-width:3px">${wl}</text><text x="${ox+170}" y="26" text-anchor="middle" style="font-size:13px;font-weight:600;fill:var(--txt)">${bio?'Red biológica (circuito)':'Red artificial'}</text>${cl.map((t,i)=>`<text x="${X[i]}" y="292" text-anchor="middle" class="svg-s">${t}</text>`).join('')}`;
+  };
+  return `<div class="card svgbox"><div class="fighead"><span>De la neurona a la red</span><button class="btn sm" data-info="c" title="Interpretación académica del esquema" aria-label="Interpretación del esquema de redes">ⓘ Interpretación</button></div><svg viewBox="0 0 760 326" role="img" aria-label="Red neuronal biológica y red neuronal artificial con la ruta usada resaltada">${panel(20,true)}${panel(400,false)}<line x1="380" y1="20" x2="380" y2="280" style="stroke:var(--line)" stroke-dasharray="4 4"/><text x="380" y="316" text-anchor="middle" class="svg-s">Grosor de la línea = fuerza de la conexión (sinapsis o peso w). Con n repeticiones solo cambia la ruta usada.</text></svg></div>`;
+}
+
+/* ============ módulos ============ */
+const rangeC=(id,label,min,max,step,value)=>({type:'range',id,label,min,max,step,value});
+const seedC=(id='seed',value=1)=>({type:'select',id,label:'Muestra aleatoria',num:true,value,options:[1,2,3,4,5].map(i=>[i,'Muestra '+i])});
+
+const MODS=[
+/* ---------- 0. INTRODUCCIÓN ---------- */
+{id:'intro',num:0,titulo:'Introducción: anatomía de la neurona y redes neuronales',cap:'Preámbulo · Del cerebro al modelo',
+ resumen:'Un recorrido ligero por la anatomía de una neurona para entender qué partes forman la conexión entre neuronas y por qué ahí es donde ocurre el aprendizaje.',
+ plan:`<p>El sistema nervioso aprende cambiando <b>la fuerza de las conexiones</b> (sinapsis) entre neuronas, no creando neuronas nuevas para cada recuerdo. De toda la anatomía de una neurona, solo dos partes forman la conexión: los <b>terminales axónicos</b> de la neurona emisora y las <b>dendritas</b> (espinas) de la receptora. El resto integra, decide y transporta la señal.</p><p><b>Actividad:</b> (1) selecciona cada parte de la neurona y lee su función; (2) aumenta las <i>repeticiones de coactivación</i> y observa cómo crece la fuerza de la sinapsis; (3) cambia la ruta de la red y comprueba que solo se fortalecen las conexiones usadas. Esa fuerza es el peso ${T('w')} de la neurona artificial.</p>`,
+ teoria:`<p><b>Anatomía mínima de una neurona.</b></p>
+ <table class="t"><tr><th>Parte</th><th>Función</th><th>Equivalente artificial</th></tr>${PARTE_ORDEN.map(k=>`<tr><td>${PARTES[k].n}</td><td>${PARTES[k].fn}</td><td>${PARTES[k].art}</td></tr>`).join('')}</table>
+ <p><b>La conexión: la sinapsis química.</b> Cuando el potencial de acción llega al terminal presináptico, las vesículas liberan neurotransmisor en la hendidura sináptica (≈ 20–40 nm). El neurotransmisor se une a receptores de la membrana postsináptica y genera un potencial postsináptico <i>excitatorio</i> (PPSE, por ejemplo con glutamato) o <i>inhibitorio</i> (PPSI, por ejemplo con GABA). El signo de la respuesta corresponde al signo del peso ${T('w_i')}.</p>
+ <p><b>Aprender es cambiar la fuerza sináptica (plasticidad).</b> Hebb (1949) propuso que si la neurona emisora contribuye repetidamente a disparar a la receptora, la conexión se fortalece. La potenciación a largo plazo (PLP), descrita por Bliss y Lømo (1973), es su correlato celular; el receptor NMDA actúa como detector de coincidencias entre la señal presináptica y la actividad postsináptica. La depresión a largo plazo (DLP) debilita las sinapsis poco útiles.</p>
+ <p>Modelo didáctico usado aquí (regla hebbiana con saturación):</p>${T(String.raw`\Delta w=\eta\,x\,y,\qquad w(n)=w_{\max}-(w_{\max}-w_0)(1-\eta)^n`,true)}
+ <p>con ${T('x')} la actividad presináptica, ${T('y')} la postsináptica, ${T('n')} las coactivaciones y ${T('\\eta')} la tasa de plasticidad. En el módulo 4 el ajuste de pesos usa una regla distinta: el descenso de gradiente, ${T(String.raw`\Delta w=\eta\,(y-\hat y)\,x`)} para la neurona lineal.</p>
+ <p><b>Límites de la analogía.</b> Las neuronas reales se comunican con pulsos en el tiempo, tienen miles de sinapsis y gran diversidad celular. La retropropagación que entrena las redes artificiales no es un mecanismo biológico demostrado; la regla hebbiana es la analogía biológica más cercana. Por eso la red artificial se considera un modelo inspirado en el cerebro, no una copia.</p>`,
+ controles:[
+  {grupo:'Anatomía de la neurona',items:[{type:'select',id:'parte',label:'Parte de la neurona',value:'todas',options:[['todas','Todas (vista general)'],['dendritas','Dendritas y espinas'],['soma','Soma'],['cono','Cono axónico'],['axon','Axón'],['mielina','Mielina y nodos de Ranvier'],['terminales','Terminales axónicos']]},{type:'check',id:'conex',label:'Resaltar las partes que forman la conexión',value:true}]},
+  {grupo:'Sinapsis y aprendizaje',items:[{type:'select',id:'tipo',label:'Tipo de sinapsis',value:'exc',options:[['exc','Excitatoria (glutamato)'],['inh','Inhibitoria (GABA)']]},rangeC('n','Repeticiones de coactivación n',0,60,1,15),rangeC('eta','Tasa de plasticidad η',0.02,0.3,0.01,0.08)]},
+  {grupo:'Red: ruta que se repite',items:[{type:'select',id:'ri',label:'Neurona de entrada',num:true,value:2,options:[[1,'Entrada 1'],[2,'Entrada 2'],[3,'Entrada 3']]},{type:'select',id:'rh',label:'Neurona intermedia',num:true,value:3,options:[[1,'Intermedia 1'],[2,'Intermedia 2'],[3,'Intermedia 3'],[4,'Intermedia 4']]},{type:'select',id:'ro',label:'Neurona de salida',num:true,value:1,options:[[1,'Salida 1'],[2,'Salida 2']]}]}],
+ botones:[{label:'Repetir 10 veces más',cls:'primary',fn(c){c.set('n',c.P.n+10)}},{label:'Reiniciar aprendizaje (n = 0)',fn(c){c.set('n',0)}}],
+ figs:[{wide:true,h:340}],
+ init:()=>({}),
+ calcular(P){
+  const w0=0.2,wmax=1,eta=P.eta,n=P.n,sg=P.tipo==='exc'?1:-1;
+  const wk=k=>wmax-(wmax-w0)*Math.pow(1-eta,k),w=wk(n),resp=sg*w;
+  const nv=Math.round(2+8*w),nr=Math.round(2+8*w);
+  const ks=Array.from({length:61},(_,k)=>k);
+  const fig0={data:[{x:ks,y:ks.map(wk),mode:'lines',line:{color:C.a,width:3},name:'fuerza w(n)'},{x:[0,60],y:[wmax,wmax],mode:'lines',line:{color:C.gray,dash:'dash'},name:'w máxima'},{x:[n],y:[w],mode:'markers',marker:{size:13,color:C.b,line:{color:'#fff',width:2}},name:'estado actual'}],layout:lay({title:ttl('Fuerza de la sinapsis según las coactivaciones'),xaxis:{title:'repeticiones de coactivación n'},yaxis:{title:'fuerza sináptica |w|',range:[0,1.1]},margin:{l:55,r:20,t:40,b:90},legend:{orientation:'h',y:-0.38}})};
+  const pd=PARTES[P.parte];
+  const det=pd?`<div class="msg"><b>${pd.n}</b><br><b>Función:</b> ${pd.fn}<br><b>¿Forma la conexión?</b> ${pd.conex}<br><b>Equivalente artificial:</b> ${pd.art}<br><b>Relación con el aprendizaje:</b> ${pd.apr}</div>`:`<div class="msg warn">Elige una parte de la neurona en “Controles” para ver su función, su equivalente artificial y su papel en el aprendizaje.</div>`;
+  const tabla=`<table class="t"><tr><th>Parte</th><th>¿Forma la conexión?</th><th>Equivalente artificial</th></tr>${PARTE_ORDEN.map(k=>`<tr${P.parte===k?' style="background:var(--panel2);font-weight:600"':''}><td>${PARTES[k].n}</td><td>${PARTES[k].cs}</td><td>${PARTES[k].art}</td></tr>`).join('')}</table>`;
+  const msg=n===0?`<div class="msg warn">La sinapsis está en su estado inicial (w = ${f(w0,2)}): la misma señal produce una respuesta débil. Aumenta las repeticiones para simular el aprendizaje.</div>`:`<div class="msg good">Tras <b>${n}</b> coactivaciones la sinapsis pasó de ${f(w0,2)} a <b>${f(w,2)}</b>: la misma señal presináptica produce una respuesta <b>${f(w/w0,1)}</b> veces mayor. Es el equivalente biológico de actualizar un peso ${T('w')}; en la red artificial solo cambió la ruta usada.</div>`;
+  return{extra:`<div class="stack">${anatomySVG(P)}${synapseSVG(P,w,sg,n)}${networkSVG(P,w,sg,n)}</div>`,figs:[fig0],panel:`<h3>Resultados</h3><div class="kpis">${kpi('Repeticiones n',n)}${kpi('Fuerza w(n)',f(w,3))}${kpi('Cambio Δw',f(Math.max(0,w-w0),3))}${kpi('Respuesta ('+(sg>0?'PPSE':'PPSI')+')',f(resp,3))}${kpi('Vesículas activas',nv+' / 10')}${kpi('Receptores activos',nr+' / 10')}</div>${msg}${det}<h3 style="margin-top:14px">Partes de la neurona y conexión</h3>${tabla}`};
+ }},
+/* ---------- 1. NEURONA ---------- */
+{id:'neurona',num:1,titulo:'De la neurona biológica a la artificial',cap:'Cap. 8.4 · Redes neuronales',
+ resumen:'Una neurona artificial suma entradas ponderadas, les añade un sesgo y decide cuánto “dispara”. Manipula entradas, pesos y activación para ver cómo se comporta.',
+ plan:`<p>Una neurona recibe señales (<b>dendritas</b>), las pondera según la fuerza de la conexión (<b>sinapsis</b> = pesos ${T('w_i')}), las suma en el <b>soma</b> junto con un umbral (sesgo ${T('b')}) y emite una salida por el <b>axón</b>.</p><p><b>Reto:</b> encuentra pesos y sesgo para que la neurona <i>dispare</i> (${T('z\\ge 0')}) solo cuando ${T('x_1')} y ${T('x_2')} sean altos a la vez (comportamiento tipo “Y” lógico). ¿Qué ocurre con una activación lineal?</p>`,
+ teoria:`<p>La neurona artificial calcula</p>${T(String.raw`z=\sum_{i=1}^{p} w_i x_i + b=\mathbf w^\top\mathbf x+b,\qquad a=\varphi(z)`,true)}
+ <table class="t"><tr><th>Neurona biológica</th><th>Neurona artificial</th></tr><tr><td>Dendritas</td><td>Entradas ${T('x_i')}</td></tr><tr><td>Fuerza sináptica</td><td>Pesos ${T('w_i')} (excitadores si ${T('w_i>0')}, inhibidores si ${T('w_i<0')})</td></tr><tr><td>Umbral de disparo</td><td>Sesgo ${T('b')}</td></tr><tr><td>Soma</td><td>Suma ponderada ${T('z')}</td></tr><tr><td>Potencial de acción</td><td>Salida ${T('a=\\varphi(z)')}</td></tr></table>
+ <p><b>Activaciones:</b></p><ul>${Object.values(ACT).map(a=>`<li>${a.n}: ${T(a.tex)}</li>`).join('')}</ul>
+ <p><b>Conexión con el curso.</b> Si ${T('\\varphi')} es la identidad, la neurona es exactamente el modelo lineal ${T('\\hat y=\\mathbf x^\\top\\boldsymbol\\beta')} (Cap. 2) con ${T('b=\\beta_0')}. Con ${T('\\varphi')} sigmoide obtenemos la regresión logística (Cap. 7). Una red neuronal es una composición de muchas de estas unidades.</p>`,
+ controles:[
+  {grupo:'Entradas (dendritas)',items:[rangeC('x1','x₁',-2,2,0.1,1),rangeC('x2','x₂',-2,2,0.1,1),rangeC('x3','x₃',-2,2,0.1,-0.5)]},
+  {grupo:'Pesos (sinapsis)',items:[rangeC('w1','w₁',-3,3,0.1,1.5),rangeC('w2','w₂',-3,3,0.1,1.5),rangeC('w3','w₃',-3,3,0.1,-1)]},
+  {grupo:'Umbral y activación',items:[rangeC('b','Sesgo b',-3,3,0.1,-2),{type:'select',id:'act',label:'Función de activación',value:'sigmoid',options:Object.entries(ACT).map(([k,v])=>[k,v.n])}]}],
+ figs:[{h:340},{h:340}],
+ init:()=>({}),
+ calcular(P){
+  const x=[P.x1,P.x2,P.x3],w=[P.w1,P.w2,P.w3],contrib=x.map((v,i)=>w[i]*v);
+  const z=contrib.reduce((s,v)=>s+v,0)+P.b,A=ACT[P.act],a=A.f(z),fires=z>=0;
+  const names=['w₁x₁','w₂x₂','w₃x₃','b','z total'],vals=[...contrib,P.b,z];
+  const fig0={data:[{type:'bar',x:names,y:vals,marker:{color:vals.map((v,i)=>i===4?C.a:v>=0?C.pos:C.neg)},text:vals.map(v=>f(v,2)),textposition:'auto',hoverinfo:'x+y'}],layout:lay({title:ttl('Aportes a z = Σ wᵢxᵢ + b'),showlegend:false,yaxis:{title:'aporte'}})};
+  const lo=Math.min(-6,z-1),hi=Math.max(6,z+1),zs=[];for(let v=lo;v<=hi+1e-9;v+=0.05)zs.push(v);
+  const fig1={data:[{x:zs,y:zs.map(A.f),mode:'lines',line:{color:C.a,width:3},name:A.n},{x:[z],y:[a],mode:'markers',marker:{size:13,color:C.b,line:{color:'#fff',width:2}},name:'neurona'}],layout:lay({title:ttl('Activación φ(z): '+A.n),xaxis:{title:'z'},yaxis:{title:'a = φ(z)'}})};
+  const eq=String.raw`z=${sgn(w[0])}\cdot${sgn(x[0])}+${sgn(w[1])}\cdot${sgn(x[1])}+${sgn(w[2])}\cdot${sgn(x[2])}+${sgn(P.b)}=${f(z,3)}`;
+  return{extra:neuronSVG(x,w,P.b,z,a),figs:[fig0,fig1],panel:`<h3>Resultados</h3><div class="kpis">${kpi('Suma ponderada z',f(z,3))}${kpi('Salida a = φ(z)',f(a,3))}${kpi('Estado',fires?'DISPARA':'en reposo',fires?'good':'bad')}</div><p>${T(eq,true)}</p><div class="msg ${fires?'good':'warn'}">${fires?'La suma supera el umbral (z ≥ 0): la neurona <b>se activa</b>.':'La suma no alcanza el umbral (z &lt; 0): la neurona <b>no se activa</b>.'} ${P.act==='lin'?'Con activación identidad, la neurona es un modelo lineal puro: no “decide”, solo calcula.':''}</div>`};
+ }},
+/* ---------- 2. PREDICE ---------- */
+{id:'predice',num:2,titulo:'Una neurona que predice: regresión lineal',cap:'Cap. 1 y 2 · Predicción y modelo lineal',
+ resumen:'Con activación identidad, la neurona es una regresión lineal simple. Ajusta w y b a mano y compara con la solución exacta de mínimos cuadrados.',
+ plan:`<p>Hay datos ${T('(x_i,y_i)')} generados por ${T('y=\\beta_0+\\beta_1x+\\varepsilon')}. La neurona predice ${T('\\hat y=wx+b')}. Mide su error con el <b>error cuadrático medio</b> (función de pérdida, Cap. 1.2).</p><p><b>Reto:</b> mueve ${T('w')} y ${T('b')} hasta igualar el ECM de MCO. Luego pulsa “Ajustar con MCO” y revisa los residuos: ¿se ven aleatorios?</p>`,
+ teoria:`<p><b>Modelo.</b> ${T('y_i=\\beta_0+\\beta_1x_i+\\varepsilon_i')}. La neurona con activación identidad produce ${T('\\hat y=wx+b')}, es decir ${T('w=\\beta_1,\\ b=\\beta_0')}.</p>
+ <p><b>Pérdida (riesgo empírico):</b></p>${T(String.raw`L(w,b)=\frac1n\sum_{i=1}^n\big(y_i-(wx_i+b)\big)^2`,true)}
+ <p><b>Mínimos cuadrados.</b> En forma matricial ${T(String.raw`\hat{\boldsymbol\beta}=(X^\top X)^{-1}X^\top\mathbf y`)}; en regresión simple:</p>${T(String.raw`\hat w=\frac{S_{xy}}{S_{xx}},\qquad \hat b=\bar y-\hat w\,\bar x`,true)}
+ <p><b>Coeficiente de determinación:</b> ${T(String.raw`R^2=1-\dfrac{\sum (y_i-\hat y_i)^2}{\sum (y_i-\bar y)^2}`)}.</p>
+ <p>Los <b>residuos</b> ${T('e_i=y_i-\\hat y_i')} permiten verificar los supuestos del modelo (Cap. 3): media cero, varianza constante, sin patrones.</p>`,
+ controles:[
+  {grupo:'Datos',items:[rangeC('n','Observaciones n',10,200,5,40),rangeC('sigma','Ruido σ',0,6,0.25,2),seedC()]},
+  {grupo:'Neurona',items:[rangeC('w','Peso w (pendiente)',-2,5,0.05,0.5),rangeC('b','Sesgo b (intercepto)',-5,8,0.1,0)]},
+  {grupo:'Vista',items:[{type:'check',id:'res',label:'Mostrar residuos',value:true},{type:'check',id:'mco',label:'Mostrar recta MCO',value:true}]}],
+ botones:[{label:'Ajustar con MCO',cls:'primary',fn(c){const o=c.S.o;c.set('w',o.w);c.set('b',o.b)}},{label:'Reiniciar neurona',fn(c){c.set('w',0.5);c.set('b',0)}}],
+ figs:[{h:380},{h:380}],
+ init:()=>({}),
+ calcular(P,ctx){
+  const D=dataLin(P.n,P.sigma,P.seed),o=ols(D.x,D.y);ctx.S.o=o;
+  const L=mse(D.x,D.y,P.w,P.b),Lo=mse(D.x,D.y,o.w,o.b),ratio=L/Lo;
+  const xs=[0,10],tr=[{x:D.x,y:D.y,mode:'markers',marker:{color:C.a,size:8,opacity:.85},name:'datos'}];
+  if(P.res){const rx=[],ry=[];D.x.forEach((v,i)=>{rx.push(v,v,null);ry.push(D.y[i],P.w*v+P.b,null)});tr.push({x:rx,y:ry,mode:'lines',line:{color:C.neg,width:1},name:'residuos'})}
+  tr.push({x:xs,y:xs.map(v=>P.w*v+P.b),mode:'lines',line:{color:C.b,width:3},name:'neurona'});
+  if(P.mco)tr.push({x:xs,y:xs.map(v=>o.w*v+o.b),mode:'lines',line:{color:C.pos,width:2,dash:'dash'},name:'MCO'});
+  const fig0={data:tr,layout:lay({title:ttl('ŷ = w·x + b frente a los datos'),xaxis:{title:'x',range:[0,10]},yaxis:{title:'y'}})};
+  const e=D.x.map((v,i)=>D.y[i]-(P.w*v+P.b));
+  const fig1={data:[{x:D.x,y:e,mode:'markers',marker:{color:C.b,size:7},name:'residuos'}],layout:lay({title:ttl('Residuos de la neurona vs x'),xaxis:{title:'x',range:[0,10]},yaxis:{title:'e = y − ŷ'},showlegend:false,shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:0,y1:0,line:{color:css('--mut'),dash:'dot'}}]})};
+  const near=ratio<1.01;
+  return{figs:[fig0,fig1],panel:`<h3>Resultados</h3><div class="kpis">${kpi('ECM neurona',f(L))}${kpi('ECM mínimo (MCO)',f(Lo))}${kpi('R² neurona',f(r2(D.x,D.y,P.w,P.b)))}${kpi('R² (MCO)',f(r2(D.x,D.y,o.w,o.b)))}${kpi('ŵ (MCO)',f(o.w))}${kpi('b̂ (MCO)',f(o.b))}</div>
+  <div class="msg ${near?'good':'warn'}">${near?'La neurona coincide con la solución de mínimos cuadrados: ya no se puede reducir más el ECM.':`Tu neurona está <b>${f((ratio-1)*100,1)} %</b> por encima del error mínimo posible. Valores reales del proceso: β₀=2, β₁=1.5.`}</div>`};
+ }},
+/* ---------- 3. DECIDE ---------- */
+{id:'decide',num:3,titulo:'Una neurona que decide: clasificación',cap:'Cap. 7 y 4.1 · Regresión logística y desempeño',
+ resumen:'Con activación sigmoide la neurona estima una probabilidad y decide con un umbral. Mueve la frontera y observa matriz de confusión, ROC y métricas.',
+ plan:`<p>Dos grupos de puntos en el plano. La neurona calcula ${T('p=\\sigma(w_1x_1+w_2x_2+b)')} y decide “clase 1” si ${T('p\\ge t')}.</p><p><b>Reto:</b> ubica la frontera a mano para maximizar la exactitud; luego pulsa “Entrenar” y compara. Sube el grupo de ruido y observa qué le pasa al AUC y a los errores. ¿Cómo cambia la decisión al mover el umbral ${T('t')}?</p>`,
+ teoria:`<p><b>Neurona sigmoide = regresión logística.</b></p>${T(String.raw`p=P(y=1\mid\mathbf x)=\sigma(\mathbf w^\top\mathbf x+b)=\frac{1}{1+e^{-(\mathbf w^\top\mathbf x+b)}},\qquad \log\frac{p}{1-p}=\mathbf w^\top\mathbf x+b`,true)}
+ <p><b>Pérdida (−log-verosimilitud, entropía cruzada):</b></p>${T(String.raw`L=-\frac1n\sum_i\big[y_i\log p_i+(1-y_i)\log(1-p_i)\big]`,true)}
+ <p><b>Frontera de decisión.</b> Clasificar como 1 si ${T('p\\ge t')} equivale a ${T(String.raw`\mathbf w^\top\mathbf x+b\ge\operatorname{logit}(t)`)}: una recta en el plano.</p>
+ <p><b>Métricas</b> (Cap. 4.1): exactitud ${T('=\\frac{TP+TN}{n}')}, precisión ${T('=\\frac{TP}{TP+FP}')}, sensibilidad ${T('=\\frac{TP}{TP+FN}')}, ${T('F_1=\\frac{2PR}{P+R}')}. La curva ROC grafica sensibilidad vs. 1−especificidad al variar ${T('t')}; el AUC es la probabilidad de que un positivo reciba mayor puntaje que un negativo.</p>`,
+ controles:[
+  {grupo:'Datos',items:[rangeC('n','Puntos por clase',20,150,5,60),rangeC('d','Separación entre grupos',0,6,0.1,3),rangeC('s','Dispersión',0.4,2.5,0.1,1),seedC()]},
+  {grupo:'Neurona',items:[rangeC('w1','Peso w₁',-5,5,0.1,0.3),rangeC('w2','Peso w₂',-5,5,0.1,0.3),rangeC('b','Sesgo b',-5,5,0.1,0)]},
+  {grupo:'Decisión',items:[rangeC('t','Umbral t',0.05,0.95,0.05,0.5)]}],
+ botones:[{label:'Entrenar neurona (gradiente)',cls:'primary',fn(c){const D=c.S.D,r=trainLogit(D.X,D.y);c.set('w1',r.w1);c.set('w2',r.w2);c.set('b',r.b)}},{label:'Reiniciar pesos',fn(c){c.set('w1',0.3);c.set('w2',0.3);c.set('b',0)}}],
+ figs:[{wide:true,h:470},{h:360},{h:360}],
+ init:()=>({}),
+ calcular(P,ctx){
+  const D=dataBlobs(P.n,P.d,P.s,P.seed);ctx.S.D=D;const{X,y}=D,n=y.length;
+  const pr=X.map(r=>sig(P.w1*r[0]+P.w2*r[1]+P.b));
+  const cnt=t=>{let tp=0,fp=0,fn=0,tn=0;pr.forEach((p,i)=>{const h=p>=t?1:0;if(y[i]&&h)tp++;else if(!y[i]&&h)fp++;else if(y[i]&&!h)fn++;else tn++});return{tp,fp,fn,tn}};
+  const q=cnt(P.t),acc=(q.tp+q.tn)/n,prec=q.tp/(q.tp+q.fp),rec=q.tp/(q.tp+q.fn),f1=2*prec*rec/(prec+rec);
+  let ll=0;pr.forEach((p,i)=>{const c=clamp(p,1e-12,1-1e-12);ll-=y[i]?Math.log(c):Math.log(1-c)});ll/=n;
+  const g=[];for(let i=0;i<=50;i++)g.push(-5+i*0.2);
+  const Z=g.map(yy=>g.map(xx=>sig(P.w1*xx+P.w2*yy+P.b)));
+  const mis=[];X.forEach((r,i)=>{if((pr[i]>=P.t?1:0)!==y[i])mis.push(i)});
+  const pts=c=>({x:X.filter((_,i)=>y[i]===c).map(r=>r[0]),y:X.filter((_,i)=>y[i]===c).map(r=>r[1])});
+  const p0=pts(0),p1=pts(1);
+  const fig0={data:[
+   {type:'heatmap',x:g,y:g,z:Z,zmin:0,zmax:1,colorscale:[[0,hexA(C.b,0.45)],[1,hexA(C.a,0.45)]],showscale:false,hoverinfo:'skip'},
+   {type:'contour',x:g,y:g,z:Z,contours:{start:P.t,end:P.t,size:1,coloring:'lines',showlabels:false},line:{width:3,color:css('--txt')},showscale:false,hoverinfo:'skip',name:'frontera'},
+   {x:p0.x,y:p0.y,mode:'markers',marker:{color:C.b,size:8,line:{color:'#0008',width:1}},name:'Clase 0'},
+   {x:p1.x,y:p1.y,mode:'markers',marker:{color:C.a,size:8,line:{color:'#0008',width:1}},name:'Clase 1'},
+   {x:mis.map(i=>X[i][0]),y:mis.map(i=>X[i][1]),mode:'markers',marker:{symbol:'circle-open',size:15,color:C.neg,line:{width:2.5,color:C.neg}},name:'errores'}],
+   layout:lay({title:ttl('Probabilidad p de la neurona y frontera de decisión'),xaxis:{title:'x₁',range:[-5,5]},yaxis:{title:'x₂',range:[-5,5],scaleanchor:'x'}})};
+  const ts=[1];for(let z=12;z>=-12;z-=0.25)ts.push(sig(z));ts.push(0);
+  const roc=ts.map(t=>{const c=cnt(t);return[c.fp/(c.fp+c.tn),c.tp/(c.tp+c.fn)]});
+  const s1=pr.filter((_,i)=>y[i]),s0=pr.filter((_,i)=>!y[i]);let auc=0;s1.forEach(a=>s0.forEach(b=>{auc+=a>b?1:a===b?0.5:0}));auc/=s1.length*s0.length;
+  const fig1={data:[{x:roc.map(r=>r[0]),y:roc.map(r=>r[1]),mode:'lines',line:{color:C.a,width:3},name:'ROC',fill:'tozeroy',fillcolor:hexA(C.a,0.15)},{x:[0,1],y:[0,1],mode:'lines',line:{color:C.gray,dash:'dot'},name:'azar'},{x:[q.fp/(q.fp+q.tn)],y:[q.tp/(q.tp+q.fn)],mode:'markers',marker:{size:12,color:C.b,line:{color:'#fff',width:2}},name:'umbral t'}],layout:lay({title:ttl(`Curva ROC (AUC = ${f(auc,3)})`),xaxis:{title:'1 − especificidad (FPR)',range:[0,1]},yaxis:{title:'sensibilidad (TPR)',range:[0,1.02]}})};
+  const fig2={data:[{type:'heatmap',x:['Predice 0','Predice 1'],y:['Real 1','Real 0'],z:[[q.fn,q.tp],[q.tn,q.fp]],text:[[q.fn,q.tp],[q.tn,q.fp]],texttemplate:'%{text}',textfont:{size:22,color:'#fff'},colorscale:[[0,'#6b7a78'],[1,'#005e6f']],showscale:false,hoverinfo:'skip'}],layout:lay({title:ttl('Matriz de confusión'),margin:{l:70,r:20,t:40,b:40},yaxis:{autorange:true}})};
+  return{figs:[fig0,fig1,fig2],panel:`<h3>Resultados (umbral t = ${f(P.t,2)})</h3><div class="kpis">${kpi('Exactitud',f(acc,3),acc>=0.9?'good':'')}${kpi('Precisión',f(prec,3))}${kpi('Sensibilidad',f(rec,3))}${kpi('F1',f(f1,3))}${kpi('AUC',f(auc,3))}${kpi('Entropía cruzada',f(ll,3))}</div><div class="msg ${acc>=0.9?'good':'warn'}">Frontera: ${T(`${f(P.w1,1)}\\,x_1+${sgn(P.w2)}\\,x_2+${sgn(P.b)}=${f(Math.log(P.t/(1-P.t)),2)}`)}. Errores: <b>${q.fp}</b> falsos positivos y <b>${q.fn}</b> falsos negativos. Subir t reduce falsos positivos pero aumenta falsos negativos.</div>`};
+ }},
+/* ---------- 4. APRENDE ---------- */
+{id:'aprende',num:4,titulo:'Cómo aprende: pérdida y descenso de gradiente',cap:'Cap. 1.2 y 8.4 · Pérdida, riesgo y optimización',
+ resumen:'La neurona ajusta w y b bajando por la superficie de la pérdida. Controla la tasa de aprendizaje y mira cuándo converge, cuándo zigzaguea y cuándo diverge.',
+ plan:`<p>La pérdida ${T('L(w,b)')} es una superficie; el aprendizaje es descender por ella con la regla ${T('\\theta\\leftarrow\\theta-\\eta\\nabla L(\\theta)')}. Las curvas de nivel muestran el recorrido de la neurona hacia el mínimo (la solución de MCO, estrella).</p><p><b>Reto:</b> con ${T('\\eta')} pequeña el aprendizaje es lento; con ${T('\\eta')} grande zigzaguea. Súbela hasta superar el valor crítico y observa la divergencia.</p>`,
+ teoria:`<p><b>Descenso de gradiente</b> para la pérdida ECM:</p>${T(String.raw`\frac{\partial L}{\partial w}=-\frac2n\sum_i x_i\,e_i,\qquad \frac{\partial L}{\partial b}=-\frac2n\sum_i e_i,\qquad e_i=y_i-\hat y_i`,true)}${T(String.raw`w\leftarrow w-\eta\,\frac{\partial L}{\partial w},\qquad b\leftarrow b-\eta\,\frac{\partial L}{\partial b}`,true)}
+ <p><b>Estabilidad.</b> La Hessiana de ${T('L')} es ${T(String.raw`\tfrac{2}{n}X^\top X`)}. El método converge si ${T(String.raw`\eta<2/\lambda_{\max}(\nabla^2L)`)}. Si el cociente entre su mayor y menor autovalor es grande (variables mal escaladas o muy correlacionadas, ver multicolinealidad, Cap. 3.3) las curvas de nivel son valles alargados y el descenso zigzaguea: por eso se <i>centran y escalan</i> las variables.</p>
+ <p><b>Relación con MCO.</b> ${T('L')} es convexa y cuadrática; el descenso converge a la solución cerrada ${T(String.raw`\hat{\boldsymbol\beta}=(X^\top X)^{-1}X^\top\mathbf y`)}. En redes con varias capas no hay fórmula cerrada y el gradiente se calcula con <i>retropropagación</i> (regla de la cadena).</p>`,
+ controles:[
+  {grupo:'Aprendizaje',items:[{type:'log',id:'lr',label:'Tasa de aprendizaje η',min:-3,max:-1.1,step:0.05,value:-1.8,toVal:v=>Math.pow(10,v),fmt:v=>v.toFixed(4)},{type:'select',id:'k',label:'Pasos por clic',num:true,value:10,options:[[1,'1 paso'],[10,'10 pasos'],[50,'50 pasos'],[200,'200 pasos']]}]},
+  {grupo:'Punto de partida',items:[rangeC('w0','w inicial',-1,4,0.1,-0.5),rangeC('b0','b inicial',-4,8,0.1,6)]},
+  {grupo:'Datos',items:[rangeC('sigma','Ruido σ',0,4,0.25,2),seedC('seed',3)]}],
+ botones:[
+  {label:'Dar pasos',cls:'primary',fn(c){gdSteps(c.S,c.P.lr,c.P.k)}},
+  {label:'Entrenar (animar 600 pasos)',fn(c){const S=c.S;if(S.timer)return false;let left=600;S.timer=setInterval(()=>{gdSteps(S,c.P.lr,10);left-=10;c.render();if(left<=0||S.diverged)stopTimer(S)},50);return false}},
+  {label:'Detener',fn(c){stopTimer(c.S)}},
+  {label:'Reiniciar',fn(c){stopTimer(c.S);c.S.key='';}}],
+ figs:[{wide:true,h:440},{h:340},{h:340}],
+ init:()=>({path:[[0,0]],losses:[1],key:'',timer:null,diverged:false,D:null}),
+ leave:S=>stopTimer(S),
+ calcular(P,ctx){
+  const S=ctx.S,D=dataLin(30,P.sigma,P.seed);S.D=D;
+  const key=[P.w0,P.b0,P.sigma,P.seed].join('|');
+  if(S.key!==key){stopTimer(S);S.key=key;S.path=[[P.w0,P.b0]];S.losses=[mse(D.x,D.y,P.w0,P.b0)];S.diverged=false}
+  const o=ols(D.x,D.y),[w,b]=S.path[S.path.length-1],L=S.losses[S.losses.length-1];
+  const gw=[],gb=[];for(let i=0;i<=70;i++){gw.push(-1+i*5/70);gb.push(-4+i*12/70)}
+  const Z=gb.map(bb=>gw.map(ww=>Math.log10(mse(D.x,D.y,ww,bb))));
+  const pth=S.path.length>800?S.path.filter((_,i)=>i%Math.ceil(S.path.length/800)===0||i===S.path.length-1):S.path;
+  const fig0={data:[{type:'contour',x:gw,y:gb,z:Z,colorscale:'Viridis',ncontours:22,contours:{coloring:'heatmap'},colorbar:{title:'log₁₀ ECM',thickness:12},line:{width:0.5}},
+   {x:pth.map(p=>p[0]),y:pth.map(p=>p[1]),mode:'lines+markers',line:{color:C.b,width:2},marker:{size:4,color:C.b},name:'trayectoria'},
+   {x:[S.path[0][0]],y:[S.path[0][1]],mode:'markers',marker:{size:12,color:'#fff',line:{color:C.b,width:3}},name:'inicio'},
+   {x:[o.w],y:[o.b],mode:'markers',marker:{symbol:'star',size:16,color:C.pos,line:{color:'#fff',width:1.5}},name:'óptimo (MCO)'}],
+   layout:lay({title:ttl('Superficie de la pérdida L(w, b) y recorrido de la neurona'),xaxis:{title:'w',range:[-1,4]},yaxis:{title:'b',range:[-4,8]}})};
+  const fig1={data:[{x:S.losses.map((_,i)=>i),y:S.losses.map(v=>Math.min(v,1e12)),mode:'lines',line:{color:C.a,width:2.5},name:'ECM'}],layout:lay({title:ttl('Pérdida por iteración'),xaxis:{title:'iteración'},yaxis:{title:'ECM',type:'log'},showlegend:false})};
+  const xs=[0,10],fig2={data:[{x:D.x,y:D.y,mode:'markers',marker:{color:C.a,size:7},name:'datos'},{x:xs,y:xs.map(v=>o.w*v+o.b),mode:'lines',line:{color:C.pos,dash:'dash',width:2},name:'MCO'},{x:xs,y:xs.map(v=>w*v+b),mode:'lines',line:{color:C.b,width:3},name:'neurona actual'}],layout:lay({title:ttl('Ajuste actual'),xaxis:{title:'x',range:[0,10]},yaxis:{title:'y',range:[Math.min(...D.y)-3,Math.max(...D.y)+3]}})};
+  const mx=mean(D.x),mx2=mean(D.x.map(v=>v*v)),tr=mx2+1,det=mx2-mx*mx,lmax=tr/2+Math.sqrt(tr*tr/4-det),lmin=tr/2-Math.sqrt(tr*tr/4-det),etaC=1/lmax;
+  let msg;
+  if(S.diverged)msg=`<div class="msg bad"><b>Divergencia:</b> con η = ${f(P.lr,4)} ≥ η crítico ≈ ${f(etaC,4)} cada paso se pasa del mínimo y el error crece. Reduce η y pulsa “Reiniciar”.</div>`;
+  else if(P.lr>etaC)msg=`<div class="msg warn">η supera el valor crítico (≈ ${f(etaC,4)}): el descenso es inestable.</div>`;
+  else if(Math.hypot(w-o.w,b-o.b)<0.05)msg=`<div class="msg good">¡Convergió! La neurona alcanzó la solución de MCO tras ${S.path.length-1} pasos.</div>`;
+  else msg=`<div class="msg">Aprendiendo… η crítico ≈ ${f(etaC,4)}. Número de condición de la Hessiana ≈ ${f(lmax/lmin,0)}: ${lmax/lmin>50?'valle alargado, el avance en la dirección lenta es muy lento (centrar x ayudaría).':'avance razonable.'}</div>`;
+  return{figs:[fig0,fig1,fig2],panel:`<h3>Resultados</h3><div class="kpis">${kpi('Iteración',S.path.length-1)}${kpi('w actual',f(w))}${kpi('b actual',f(b))}${kpi('ECM actual',Number.isFinite(L)&&L<1e9?f(L):'∞',S.diverged?'bad':'')}${kpi('Óptimo (ŵ, b̂)',`${f(o.w,2)}, ${f(o.b,2)}`)}${kpi('η crítico',f(etaC,4))}</div>${msg}`};
+ }},
+/* ---------- 5. GENERALIZA ---------- */
+{id:'generaliza',num:5,titulo:'Aprender sin memorizar: validación y regularización',cap:'Cap. 4 · Entrenamiento-testeo, Ridge y LASSO',
+ resumen:'Una neurona con entradas x, x², x³… puede ajustar casi cualquier curva. Comprueba cuándo memoriza el ruido (sobreajuste) y cómo Ridge y LASSO lo controlan.',
+ plan:`<p>Se entrena la neurona con pocos datos y se evalúa con datos <b>nuevos</b> (prueba). La capacidad del modelo la fija el <b>grado</b> del polinomio; la <b>regularización</b> ${T('\\lambda')} penaliza pesos grandes.</p><p><b>Reto:</b> con grado alto y ${T('\\lambda=0')} observa cómo el error de entrenamiento cae y el de prueba se dispara. Sube ${T('\\lambda')} (Ridge) o cambia a LASSO: ¿qué coeficientes se vuelven exactamente cero?</p>`,
+ teoria:`<p><b>Error de entrenamiento vs. prueba.</b> El riesgo empírico en la muestra de entrenamiento es optimista; el desempeño predictivo real se estima en datos no usados para ajustar (Cap. 4.2). La descomposición del error esperado:</p>${T(String.raw`\mathbb E\big[(y-\hat f(x))^2\big]=\underbrace{\text{sesgo}^2}_{\text{subajuste}}+\underbrace{\text{varianza}}_{\text{sobreajuste}}+\sigma^2`,true)}
+ <p><b>Ridge</b> (Cap. 4.4) penaliza la norma ${T('\\ell_2')}: ${T(String.raw`\min_{\boldsymbol\beta}\ \frac1{2n}\|\mathbf y-X\boldsymbol\beta\|_2^2+\frac\lambda2\|\boldsymbol\beta\|_2^2`)}, con solución ${T(String.raw`\hat{\boldsymbol\beta}=(X^\top X/n+\lambda I)^{-1}X^\top\mathbf y/n`)}. Encoge los coeficientes sin anularlos.</p>
+ <p><b>LASSO</b> penaliza ${T('\\ell_1')}: ${T(String.raw`\min_{\boldsymbol\beta}\ \frac1{2n}\|\mathbf y-X\boldsymbol\beta\|_2^2+\lambda\|\boldsymbol\beta\|_1`)}. Su solución usa el umbral suave ${T(String.raw`S_\lambda(\rho)=\operatorname{sgn}(\rho)\max(|\rho|-\lambda,0)`)}, que lleva coeficientes <i>exactamente</i> a cero y por tanto selecciona variables.</p>
+ <p>En redes neuronales, Ridge se conoce como <i>weight decay</i>. Las columnas se estandarizan antes de penalizar; el intercepto no se penaliza.</p>`,
+ controles:[
+  {grupo:'Datos',items:[rangeC('n','Datos de entrenamiento',8,60,1,18),rangeC('sigma','Ruido σ',0.05,0.6,0.05,0.25),seedC()]},
+  {grupo:'Capacidad del modelo',items:[rangeC('d','Grado del polinomio',1,12,1,9)]},
+  {grupo:'Regularización',items:[{type:'select',id:'tipo',label:'Penalización',value:'ridge',options:[['ridge','Ridge (L2)'],['lasso','LASSO (L1)']]},{type:'log',id:'lam',label:'λ (fuerza)',min:-5,max:1,step:0.1,value:-5,toVal:v=>v<=-5?0:Math.pow(10,v),fmt:v=>v===0?'0 (ninguna)':v.toPrecision(2)}]}],
+ figs:[{wide:true,h:420},{h:340},{h:340}],
+ init:()=>({}),
+ calcular(P){
+  const r=rng(P.seed*31337+1),tf=x=>0.8*Math.sin(2.5*x)+0.2*x;
+  const xtr=[],ytr=[];for(let i=0;i<P.n;i++){const x=2*r()-1;xtr.push(x);ytr.push(tf(x)+P.sigma*gauss(r))}
+  const r2_=rng(P.seed*7+999),xte=[],yte=[];for(let i=0;i<300;i++){const x=2*r2_()-1;xte.push(x);yte.push(tf(x)+P.sigma*gauss(r2_))}
+  const fit=fitPoly(xtr,ytr,P.d,P.lam,P.tipo),tr=mseF(fit.predict,xtr,ytr),te=mseF(fit.predict,xte,yte);
+  const xs=[];for(let i=0;i<=200;i++)xs.push(-1+i/100);
+  const fig0={data:[{x:xs,y:xs.map(tf),mode:'lines',line:{color:C.gray,dash:'dash',width:2},name:'función real'},{x:xte.slice(0,80),y:yte.slice(0,80),mode:'markers',marker:{color:C.b,size:5,opacity:.45},name:'prueba'},{x:xtr,y:ytr,mode:'markers',marker:{color:C.a,size:9,line:{color:'#fff',width:1}},name:'entrenamiento'},{x:xs,y:xs.map(fit.predict),mode:'lines',line:{color:C.pos,width:3},name:'neurona ajustada'}],layout:lay({title:ttl(`Ajuste con grado ${P.d}`),xaxis:{title:'x',range:[-1,1]},yaxis:{title:'y',range:[-2.2,2.2]}})};
+  const ds=[],trs=[],tes=[];for(let k=1;k<=12;k++){const ft=fitPoly(xtr,ytr,k,P.lam,P.tipo);ds.push(k);trs.push(mseF(ft.predict,xtr,ytr));tes.push(mseF(ft.predict,xte,yte))}
+  const fig1={data:[{x:ds,y:trs,mode:'lines+markers',line:{color:C.a,width:2.5},name:'entrenamiento'},{x:ds,y:tes,mode:'lines+markers',line:{color:C.b,width:2.5},name:'prueba'},{x:[P.d,P.d],y:[Math.min(...trs,...tes)/2,Math.max(...tes)*2],mode:'lines',line:{color:C.gray,dash:'dot'},name:'grado actual'},{x:[1,12],y:[P.sigma**2,P.sigma**2],mode:'lines',line:{color:C.pos,dash:'dash'},name:'σ² (irreducible)'}],layout:lay({title:ttl('Error vs. complejidad (con tu λ)'),xaxis:{title:'grado',dtick:1},yaxis:{title:'ECM',type:'log'}})};
+  const fig2={data:[{type:'bar',x:fit.beta.map((_,j)=>j===0?'x':'x'+(j+1)),y:fit.beta,marker:{color:fit.beta.map(b=>b>=0?C.pos:C.neg)}}],layout:lay({title:ttl('Coeficientes (variables estandarizadas)'),showlegend:false,yaxis:{title:'βⱼ'}})};
+  const fl=P.sigma**2;let diag,cls;
+  if(tr>1.6*fl&&te>1.6*fl){diag='<b>Subajuste</b>: el modelo es demasiado simple (sesgo alto). Aumenta el grado o reduce λ.';cls='warn'}
+  else if(te>1.8*tr&&te>1.4*fl){diag='<b>Sobreajuste</b>: el error de prueba supera mucho al de entrenamiento (varianza alta). Reduce el grado o aumenta λ.';cls='bad'}
+  else{diag='<b>Buen equilibrio</b>: el error de prueba es cercano al ruido irreducible σ².';cls='good'}
+  return{figs:[fig0,fig1,fig2],panel:`<h3>Resultados</h3><div class="kpis">${kpi('ECM entrenamiento',f(tr,4))}${kpi('ECM prueba',f(te,4),cls==='bad'?'bad':cls==='good'?'good':'')}${kpi('Razón prueba/entren.',f(te/Math.max(tr,1e-12),2))}${kpi('σ² (irreducible)',f(fl,4))}${kpi('Coef. ≠ 0',`${fit.nz} de ${P.d}`)}${kpi('λ',P.lam===0?'0':P.lam.toPrecision(2))}</div><div class="msg ${cls}">${diag}</div>${P.tipo==='lasso'&&P.lam===0?'<p class="muted">Nota: LASSO con λ = 0 converge lentamente con variables muy correlacionadas.</p>':''}`};
+ }},
+/* ---------- RETO (oculto) ---------- */
+{id:'reto',oculto:true,num:'★',titulo:'Reto: ajusta la neurona a mano',cap:'Desafío · Cap. 2',
+ resumen:'Hay datos ocultos con una tendencia lineal. Ajusta w y b hasta quedar a menos del 10 % del error mínimo posible (MCO).',
+ plan:`<p>Mide tu avance con la razón ${T('\\text{ECM}_{\\text{neurona}}/\\text{ECM}_{\\text{MCO}}\\ge 1')}. Pista: la recta de MCO siempre pasa por el centroide ${T('(\\bar x,\\bar y)')}.</p>`,
+ teoria:`<p>La recta de mínimos cuadrados cumple ${T('\\hat b=\\bar y-\\hat w\\bar x')}, es decir, pasa por ${T('(\\bar x,\\bar y)')}. Una vez que la recta pasa por el centroide solo queda ajustar la pendiente.</p>`,
+ controles:[{grupo:'Neurona',items:[rangeC('w','Peso w',-3,5,0.05,0),rangeC('b','Sesgo b',-8,10,0.1,0)]},{grupo:'Ayudas',items:[{type:'check',id:'hint',label:'Mostrar centroide (pista)',value:false},{type:'check',id:'mco',label:'Revelar recta MCO',value:false}]}],
+ botones:[{label:'Nuevo reto',cls:'primary',fn(c){c.S.seed=Math.floor(Math.random()*1e6);c.set('w',0);c.set('b',0)}}],
+ figs:[{wide:true,h:420}],
+ init:()=>({seed:Math.floor(Math.random()*1e6)}),
+ calcular(P,ctx){
+  const r=rng(ctx.S.seed+7),a=r()*8-4,s=r()*4-0.5,D=dataLin(35,2,ctx.S.seed%9973,a,s),o=ols(D.x,D.y);
+  const L=mse(D.x,D.y,P.w,P.b),Lo=mse(D.x,D.y,o.w,o.b),ratio=L/Lo,xs=[0,10];
+  const tr=[{x:D.x,y:D.y,mode:'markers',marker:{color:C.a,size:8},name:'datos'},{x:xs,y:xs.map(v=>P.w*v+P.b),mode:'lines',line:{color:C.b,width:3},name:'tu neurona'}];
+  if(P.hint)tr.push({x:[o.mx],y:[o.my],mode:'markers',marker:{symbol:'x',size:14,color:C.neg,line:{width:3,color:C.neg}},name:'centroide'});
+  if(P.mco)tr.push({x:xs,y:xs.map(v=>o.w*v+o.b),mode:'lines',line:{color:C.pos,dash:'dash',width:2},name:'MCO'});
+  const pct=clamp(100*(1-Math.log(ratio)/Math.log(6)),0,100);
+  let m,c;if(ratio<=1.02){m='¡Excelente! Prácticamente idéntico a MCO.';c='good'}else if(ratio<=1.10){m='¡Reto superado! Estás a menos del 10 % del mínimo.';c='good'}else{m='Sigue ajustando. Pista: lleva la recta por el centroide y luego mueve la pendiente.';c='warn'}
+  return{figs:[{data:tr,layout:lay({title:ttl('Ajusta la recta a los datos'),xaxis:{title:'x',range:[0,10]},yaxis:{title:'y'}})}],panel:`<h3>Tu desempeño</h3><div class="kpis">${kpi('ECM tuyo',f(L))}${kpi('ECM mínimo',f(Lo))}${kpi('Razón',f(ratio,3),ratio<=1.1?'good':'')}</div><div class="prog"><i style="width:${pct.toFixed(0)}%"></i></div><div class="msg ${c}">${m}</div>`};
+ }}
+];
+const VIS=MODS.filter(m=>!m.oculto);
+
+/* ============ cuestionario ============ */
+const QUIZ=[
+ {q:`Una neurona con activación identidad y pérdida ECM es equivalente a:`,o:['Una regresión logística','Una regresión lineal estimada por mínimos cuadrados','Un árbol de decisión','Una máquina de soporte vectorial'],c:1,e:'Con φ(z)=z, ŷ = wᵀx + b es el modelo lineal; minimizar el ECM da MCO.'},
+ {q:`En ${T('z=\\mathbf w^\\top\\mathbf x+b')}, el sesgo ${T('b')} cumple el mismo papel que:`,o:['La pendiente β₁','El intercepto β₀','La varianza del error','El coeficiente R²'],c:1,e:'El sesgo desplaza la salida cuando todas las entradas son 0: es el intercepto.'},
+ {q:'Una neurona con activación sigmoide y pérdida de entropía cruzada es equivalente a:',o:['Regresión lineal múltiple','Regresión de Poisson','Regresión logística','LASSO'],c:2,e:'σ(wᵀx+b) modela P(y=1|x); maximizar la verosimilitud es minimizar la entropía cruzada (Cap. 7).'},
+ {q:'Si la tasa de aprendizaje η supera el valor crítico 2/λmáx del Hessiano, el descenso de gradiente:',o:['Converge más rápido','Converge al mismo punto','Diverge: el error crece','Se detiene en un mínimo local'],c:2,e:'Cada paso sobrepasa el mínimo por más de lo que corrige y las iteraciones se alejan.'},
+ {q:'Un modelo tiene ECM de entrenamiento muy bajo y ECM de prueba muy alto. El diagnóstico es:',o:['Subajuste','Sobreajuste','Buen ajuste','Multicolinealidad perfecta'],c:1,e:'Memorizó el ruido de entrenamiento y no generaliza (varianza alta).'},
+ {q:'¿Qué diferencia a LASSO de Ridge?',o:['LASSO no usa penalización','LASSO puede llevar coeficientes exactamente a cero','Ridge selecciona variables y LASSO no','Ninguna, son idénticos'],c:1,e:'La penalización ℓ1 produce soluciones dispersas; ℓ2 solo encoge los coeficientes.'},
+ {q:'Al subir el umbral de decisión t en un clasificador probabilístico, en general:',o:['Aumentan los falsos positivos','Disminuyen los falsos positivos y aumentan los falsos negativos','No cambia nada','Aumenta el AUC'],c:1,e:'Se exige más evidencia para decir “clase 1”: menos falsos positivos, más falsos negativos. El AUC no depende de t.'}
+];
+
+/* ============ interpretación académica de las figuras ============ */
+const sec=(h,t)=>`<h3>${h}</h3><p>${t}</p>`;
+const INF=(t,rep,lec,int,cap,ana)=>({t,h:sec('¿Qué representa?',rep)+(ana?`<div class="ana"><h3>💡 Una analogía cotidiana</h3>${ana}</div>`:'')+sec('Cómo leerla',lec)+sec('Interpretación académica',int)+(cap?`<p class="muted"><b>Vínculo con el programa:</b> ${cap}</p>`:'')});
+const INFO={
+ intro:{
+  a:INF('Anatomía de una neurona',
+   `Esquema simplificado de una neurona: dendritas con espinas, soma con núcleo, cono axónico, axón con vaina de mielina y nodos de Ranvier, y terminales axónicos que se acercan a la membrana de la neurona siguiente. Los círculos verdes punteados marcan las partes que forman la conexión.`,
+   `La señal avanza de izquierda a derecha: se recibe en las dendritas, se integra en el soma, se decide en el cono axónico, se conduce por el axón y se transmite en los terminales. Al elegir una parte en los controles, las demás se atenúan y el panel describe su función.`,
+   `Solo dos partes intervienen en la conexión: los terminales axónicos (lado presináptico) y las dendritas, sobre todo las espinas dendríticas (lado postsináptico). El soma realiza una integración de entradas excitatorias e inhibitorias análoga a la suma ponderada ${T('z=\\sum_i w_ix_i+b')}; el cono axónico aplica el umbral, análogo a la activación; y el axón transporta la salida. Esta correspondencia es funcional y simplificada.`,
+   'Cap. 8.4 (introducción a las redes neuronales) y Cap. 2.1 (estructura del modelo lineal).',
+   `<p>Piensa en una <b>junta directiva que vota</b> si aprueba una inversión:</p><ul><li><b>Dendritas y espinas</b> = los asientos donde llegan los votos y las opiniones de muchos asesores (cada espina es un asesor distinto).</li><li><b>Soma</b> = la mesa donde se cuentan los votos a favor y en contra. Algunos asesores pesan más que otros: eso es el peso ${T('w_i')}.</li><li><b>Cono axónico</b> = el presidente con una regla fija: «si el balance supera el quórum, firmo; si no, no pasa nada». No hay firmas a medias: es de todo o nada.</li><li><b>Axón</b> = el mensajero que lleva la decisión firmada.</li><li><b>Vaina de mielina y nodos de Ranvier</b> = un tren expreso que no para en cada calle sino solo en algunas estaciones de relevo: llega mucho más rápido.</li><li><b>Terminales</b> = los repartidores que dejan la carta en la puerta de la siguiente oficina.</li></ul><p>Lo importante para aprender: lo que se modifica con la experiencia no es el mensajero, sino <b>cuánto peso tiene cada voto</b> en la mesa, es decir, la conexión entre la entrega y la recepción.</p>`),
+  b:INF('La sinapsis química',
+   `Esquema de una sinapsis química: terminal presináptico con vesículas de neurotransmisor, hendidura sináptica, receptores en la membrana postsináptica y, abajo, la respuesta postsináptica relativa (positiva si es excitatoria y negativa si es inhibitoria). El número de vesículas, de moléculas liberadas y de receptores activos crece con la fuerza ${T('w')}.`,
+   `Aumenta las repeticiones de coactivación: aparecen más vesículas, más neurotransmisor en la hendidura y más receptores activos, y la barra de respuesta se alarga. Cambia el tipo a inhibitoria y la respuesta cambia de signo sin cambiar de magnitud.`,
+   `Es el punto donde se almacena el aprendizaje: la potenciación a largo plazo aumenta la liberación presináptica y el número de receptores postsinápticos. En el modelo, la respuesta ${T('\\pm w')} equivale al producto de la entrada por el peso, ${T('w_ix_i')}, y su signo, al carácter excitador o inhibidor de la conexión. Las cantidades del dibujo son ilustrativas, no medidas.`,
+   'Cap. 2.3 (interpretación de coeficientes) y Cap. 8.4.',
+   `<p>Imagina <b>dos orillas de un río</b> y un servicio de envíos entre ellas:</p><ul><li><b>Vesículas</b> = las cajas con paquetes que esperan en el muelle de salida.</li><li><b>Hendidura sináptica</b> = el río, tan angosto (millonésimas de milímetro) que el paquete lo cruza en un instante.</li><li><b>Receptores</b> = los casilleros con cerradura del muelle de llegada: solo se abren con la llave correcta.</li><li><b>Fuerza de la sinapsis w</b> = la <b>perilla de volumen</b> entre las dos neuronas: con más cajas enviadas y más casilleros disponibles, el mensaje llega más fuerte.</li><li><b>Excitatoria o inhibitoria</b> = el <b>acelerador</b> o el <b>freno</b>: la misma intensidad, pero empujando en sentidos opuestos (por eso la respuesta cambia de signo).</li></ul><p>Cada vez que ambas neuronas «hablan» a la vez, se instalan más casilleros y se mandan más cajas: la perilla sube. Es el principio de Hebb en palabras simples: <i>lo que se usa junto, se conecta mejor</i>.</p>`),
+  c:INF('De la neurona a la red',
+   `Dos redes con la misma topología (3 entradas, 4 neuronas intermedias, 2 salidas): a la izquierda, un circuito biológico de neuronas sensoriales, interneuronas y neuronas motoras; a la derecha, una red artificial. Cada línea es una conexión; su grosor es la fuerza de la sinapsis o el peso ${T('w')}. La ruta elegida aparece resaltada.`,
+   `Cambia la ruta y las repeticiones: solo se engrosan las conexiones de la ruta usada; el resto permanece débil. Cuando el aprendizaje es hebbiano, lo que se usa junto se fortalece.`,
+   `En ambas redes el conocimiento reside en las conexiones, no en las neuronas individuales: aprender es modificar los pesos. En redes artificiales ese ajuste se calcula minimizando una función de pérdida (módulo 4); en el cerebro, la plasticidad depende de la actividad local. La retropropagación no es un mecanismo biológico demostrado, por lo que el parecido es de principio, no de implementación.`,
+   'Cap. 8.4 y Cap. 1.2 (función de pérdida y riesgo empírico).',
+   `<p>Piensa en un <b>mapa de rutas de transporte o de proveedores</b>:</p><ul><li><b>Neuronas</b> = las ciudades o paraderos. Siempre están en el mismo sitio.</li><li><b>Conexiones</b> = las vías entre ellas. Una trocha se vuelve carretera, y luego autopista, cuanto más se usa y más se invierte en ella.</li><li><b>Grosor de la línea</b> = la capacidad de esa vía (el peso w).</li></ul><p>Con la experiencia no se construyen ciudades nuevas: se <b>ensanchan las vías que sí funcionan</b> y las que no se usan quedan como caminos angostos. «Saber algo» es tener las rutas correctas bien ensanchadas. En la red artificial pasa lo mismo, solo que un algoritmo decide cuánto ensanchar cada vía para reducir el error.</p>`),
+  0:INF('Fuerza de la sinapsis según las coactivaciones',
+   `Curva de la fuerza sináptica ${T('w(n)=w_{\\max}-(w_{\\max}-w_0)(1-\\eta)^n')} en función del número de coactivaciones ${T('n')}, con ${T('w_0=0{,}2')} y ${T('w_{\\max}=1')}. El punto marca el estado actual y la línea discontinua, el límite de saturación.`,
+   `La curva sube con rapidez al principio y se aplana al acercarse a ${T('w_{\\max}')}: los primeros aprendizajes producen los mayores cambios. Una ${T('\\eta')} mayor acerca la curva al máximo con menos repeticiones.`,
+   `Es una función de saturación exponencial (convergencia geométrica con razón ${T('1-\\eta')}), la misma forma que sigue el error en un descenso de gradiente cuadrático (módulo 4). La saturación refleja que una sinapsis no puede crecer sin límite, lo que evita que la actividad se desestabilice. El modelo es didáctico y no pretende ajustar datos fisiológicos.`,
+   'Cap. 1.2 y Cap. 8.4.',
+   `<p>Es como <b>aprender a montar en bicicleta</b> o a memorizar vocabulario: las primeras prácticas producen mejoras enormes, pero cada repetición adicional aporta cada vez menos hasta que ya casi no se nota. En economía lo reconocerías como <b>rendimientos marginales decrecientes</b>.</p><p>También sirve la imagen de <b>llenar un vaso</b> con un grifo que cada vez gotea menos: al principio sube rápido y cerca del borde el nivel apenas cambia. El borde es ${T('w_{\max}')}: una conexión no puede crecer sin límite.</p>`)
+ },
+ neurona:{
+  d:INF('Diagrama de la neurona',
+   `Grafo computacional de una neurona con tres entradas ${T('x_1,x_2,x_3')}, pesos ${T('w_i')}, sesgo ${T('b')}, suma ponderada ${T('z')} y salida ${T('a=\\varphi(z)')}. El grosor de cada conexión es proporcional a ${T('|w_i|')}; el color verde indica peso excitador (${T('w_i>0')}) y el rojo, inhibidor (${T('w_i<0')}). La intensidad del soma es proporcional a ${T('|a|')}.`,
+   `Se recorre de izquierda a derecha: cada entrada se amplifica o atenúa por su peso, el soma las agrega junto con el sesgo y la función de activación transforma el resultado. Una conexión gruesa implica que esa entrada domina la decisión de la neurona.`,
+   `El predictor ${T('z=\\mathbf w^\\top\\mathbf x+b')} es lineal en los parámetros, es decir, idéntico al predictor lineal de un modelo de regresión. La única diferencia estructural entre la neurona y el modelo lineal clásico es la no linealidad ${T('\\varphi')}. El analogismo biológico (dendritas, sinapsis, umbral) es una metáfora funcional, no una equivalencia fisiológica.`,
+   'Cap. 2.1–2.2 (modelo lineal y representación matricial) y Cap. 8.4 (redes neuronales).'),
+  0:INF('Aportes a z',
+   `Descomposición aditiva de la suma ponderada: cada barra es el aporte ${T('w_ix_i')} de una entrada, la barra ${T('b')} es el sesgo y la última barra es el total ${T('z=\\sum_i w_ix_i+b')}.`,
+   `Las barras positivas empujan a la neurona hacia activarse y las negativas hacia el reposo. La neurona dispara cuando la barra total ${T('z')} es no negativa. Compara qué entrada pesa más en valor absoluto.`,
+   `Por ser un predictor lineal, el efecto de cada variable es aditivo y separable: no hay interacciones entre entradas dentro de ${T('z')}. Esto permite interpretar cada ${T('w_i')} como el cambio en ${T('z')} por unidad de ${T('x_i')}, ceteris paribus, igual que un coeficiente de regresión. Al comparar aportes debe recordarse que dependen de la escala de las variables.`,
+   'Cap. 2.2–2.3 (interpretación de coeficientes).'),
+  1:INF('Función de activación',
+   `Gráfica de ${T('a=\\varphi(z)')} para la activación elegida. El punto marca el estado actual ${T('(z,\\varphi(z))')} de la neurona.`,
+   `Observa el rango de salida y la pendiente en torno al punto. El escalón es discontinuo; la sigmoide es acotada en ${T('(0,1)')}; la tangente hiperbólica en ${T('(-1,1)')}; la ReLU es lineal por tramos y no acotada; la identidad no transforma.`,
+   `La sigmoide tiene derivada ${T('\\varphi\'(z)=\\varphi(z)(1-\\varphi(z))\\le 1/4')}, máxima en ${T('z=0')}: en las colas se satura y los gradientes se desvanecen, lo que ralentiza el aprendizaje. Su salida se interpreta como probabilidad porque es la inversa del enlace logit, ${T('\\operatorname{logit}(p)=\\log\\frac{p}{1-p}=z')}. Con la identidad, la neurona es un modelo lineal; sin una no linealidad, apilar capas no aumentaría la capacidad expresiva.`,
+   'Cap. 7 (función de enlace logit) y Cap. 8.4.')
+ },
+ predice:{
+  0:INF('Dispersión y recta ajustada',
+   `Nube de puntos ${T('(x_i,y_i)')}, la recta de la neurona ${T('\\hat y=wx+b')}, la recta de mínimos cuadrados ordinarios (discontinua) y, si se activa, los residuos como segmentos verticales.`,
+   `El criterio ECM equivale a minimizar la suma de los cuadrados de la longitud de los segmentos verticales. Cualquier recta distinta de la de MCO tiene un ECM estrictamente mayor. Cuando la recta de la neurona se superpone a la discontinua, el ECM alcanza su mínimo.`,
+   `La pendiente ${T('\\hat w=S_{xy}/S_{xx}')} estima el cambio esperado de ${T('y')} por unidad de ${T('x')}; el intercepto ${T('\\hat b=\\bar y-\\hat w\\bar x')} garantiza que la recta pase por el centroide ${T('(\\bar x,\\bar y)')}. Geométricamente, ${T('\\hat{\\mathbf y}')} es la proyección ortogonal de ${T('\\mathbf y')} sobre el espacio columna de ${T('X')}. Un mayor ruido ${T('\\sigma')} disminuye ${T('R^2')} y ensancha la incertidumbre de ${T('\\hat w')}, cuya varianza es ${T('\\sigma^2/S_{xx}')}.`,
+   'Cap. 1.3 y 1.5 (mejor predictor lineal, proyecciones) y Cap. 2.3 (estimación e inferencia).'),
+  1:INF('Residuos frente a x',
+   `Gráfico de residuos ${T('e_i=y_i-\\hat y_i')} de la neurona en función de la variable explicativa. La línea punteada marca ${T('e=0')}.`,
+   `Un buen ajuste muestra una nube sin estructura, centrada en cero y con amplitud vertical aproximadamente constante. Una curvatura sugiere una relación no lineal omitida; un embudo (dispersión creciente) sugiere heterocedasticidad; puntos aislados lejos del resto sugieren atípicos o puntos influyentes.`,
+   `Con el estimador MCO e intercepto se cumplen las condiciones de ortogonalidad ${T('\\sum e_i=0')} y ${T('\\sum x_ie_i=0')}, de modo que no puede haber tendencia lineal en este gráfico. Si la recta de la neurona no es la de MCO, aparece un sesgo sistemático (media distinta de cero o correlación con ${T('x')}). Este diagnóstico es informal; su fundamento son los supuestos de Gauss–Markov: errores de media cero, varianza constante e incorrelacionados.`,
+   'Cap. 2.2 (supuestos) y Cap. 3.2, 3.4 y 3.5 (atípicos, transformaciones estabilizadoras y mínimos cuadrados ponderados).')
+ },
+ decide:{
+  0:INF('Probabilidad estimada y frontera de decisión',
+   `Mapa de color de ${T('\\hat p(\\mathbf x)=\\sigma(w_1x_1+w_2x_2+b)')} sobre el plano de entradas. La línea sólida es la frontera ${T('\\hat p=t')}; los puntos son las observaciones por clase y los círculos rojos, las clasificaciones erróneas.`,
+   `Los tonos intensos indican alta confianza; el tono intermedio se concentra alrededor de la frontera, donde ${T('\\hat p\\approx 0{,}5')}. La separación perpendicular entre un punto y la frontera es proporcional a la confianza de la clasificación. Un solape entre los grupos implica errores inevitables.`,
+   `La frontera es una recta porque ${T('\\{\\mathbf x:\\mathbf w^\\top\\mathbf x+b=\\operatorname{logit}(t)\\}')} es un hiperplano; el vector ${T('\\mathbf w')} es su normal y apunta hacia la dirección de mayor logaritmo de la razón de momios. Por tanto ${T('e^{w_j}')} es la razón de momios multiplicativa por unidad de ${T('x_j')}. Con clases solapadas existe un error de Bayes irreducible; con separación perfecta el estimador de máxima verosimilitud no existe porque ${T('\\|\\mathbf w\\|\\to\\infty')}.`,
+   'Cap. 7.1–7.3 (regresión logística, estimación).'),
+  1:INF('Curva ROC',
+   `Gráfica de la sensibilidad (${T('TPR')}) frente a ${T('1-\\text{especificidad}\\ (FPR)')} al variar el umbral ${T('t')} de 1 a 0. La diagonal punteada es un clasificador aleatorio y el punto marca el umbral actual.`,
+   `Una curva más cercana a la esquina superior izquierda indica mejor discriminación. El área bajo la curva (AUC) resume el desempeño: 0,5 equivale al azar y 1 a una separación perfecta. Mover el umbral desplaza el punto a lo largo de la curva sin cambiarla.`,
+   `El AUC es la probabilidad de que un caso positivo reciba un puntaje mayor que uno negativo, ${T('\\mathrm{AUC}=P(s(X^+)>s(X^-))')}, equivalente al estadístico de Mann–Whitney normalizado. Es invariante a transformaciones monótonas del puntaje y no depende de ${T('t')}; mide discriminación, no calibración de las probabilidades. La elección del punto operativo requiere especificar los costos relativos de los falsos positivos y negativos.`,
+   'Cap. 4.1 (indicadores de capacidad predictiva) y Cap. 7.5 (bondad de ajuste).'),
+  2:INF('Matriz de confusión',
+   `Tabla de contingencia entre la clase real y la predicha al umbral ${T('t')} vigente: verdaderos positivos (TP), falsos positivos (FP), falsos negativos (FN) y verdaderos negativos (TN).`,
+   `La diagonal corresponde a los aciertos; las celdas fuera de ella, a los errores. Al subir ${T('t')} disminuyen los FP y aumentan los FN, y viceversa. A partir de la tabla: exactitud ${T('=\\frac{TP+TN}{n}')}, precisión ${T('=\\frac{TP}{TP+FP}')}, sensibilidad ${T('=\\frac{TP}{TP+FN}')}.`,
+   `La exactitud es el complemento del riesgo empírico bajo pérdida 0-1 y puede ser engañosa con clases desbalanceadas; por ello se complementa con precisión, sensibilidad y ${T('F_1')}. Dado que se evalúa en los mismos datos con que se estimó la neurona, estas métricas son optimistas; una estimación honesta requiere una muestra de prueba.`,
+   'Cap. 1.2 (función de pérdida y riesgo empírico) y Cap. 4.1–4.2.')
+ },
+ aprende:{
+  0:INF('Superficie de la pérdida y trayectoria',
+   `Curvas de nivel de ${T('\\log_{10}L(w,b)')}, con ${T('L')} el ECM. La estrella es el mínimo global (solución de MCO), el círculo blanco es el punto inicial y la línea naranja es el recorrido del descenso de gradiente.`,
+   `En cada paso la neurona se mueve en sentido contrario al gradiente, que es perpendicular a las curvas de nivel. Curvas muy alargadas producen un recorrido en zigzag; un ${T('\\eta')} excesivo genera oscilaciones crecientes que salen del dominio mostrado (divergencia).`,
+   `Como ${T('L')} es una función cuadrática convexa, sus curvas de nivel son elipses concéntricas y el mínimo es único. El descenso converge geométricamente con razón ${T('\\rho=\\max_i|1-\\eta\\lambda_i|')}, y exige ${T('\\eta<2/\\lambda_{\\max}')}. El cociente ${T('\\kappa=\\lambda_{\\max}/\\lambda_{\\min}')} (número de condición de ${T('X^\\top X')}) controla la velocidad: la multicolinealidad lo agranda y vuelve lento el aprendizaje.`,
+   'Cap. 1.2 (riesgo empírico), Cap. 3.3 (multicolinealidad) y Cap. 8.4.'),
+  1:INF('Pérdida por iteración',
+   `Valor del ECM ${T('L(\\theta_k)')} en cada iteración ${T('k')}, en escala logarítmica.`,
+   `Una recta descendente indica convergencia lineal (geométrica) cuya pendiente es ${T('\\log\\rho')}. Una meseta indica avance lento en la dirección de menor curvatura; un crecimiento sostenido indica divergencia.`,
+   `El ECM no puede descender por debajo del mínimo de MCO, que es la cota inferior alcanzable por este modelo; la diferencia ${T('L(\\theta_k)-L(\\hat\\theta)')} es el error de optimización. Se suele detener el entrenamiento cuando la reducción relativa de la pérdida es menor que una tolerancia prefijada.`,
+   'Cap. 1.2 y Cap. 8.1.'),
+  2:INF('Ajuste actual frente a los datos',
+   `Los datos, la recta de MCO (discontinua) y la recta de la neurona con los parámetros de la iteración actual.`,
+   `Al avanzar el entrenamiento la recta de la neurona se aproxima a la de MCO hasta superponerse. Compárala con el recorrido de la primera figura: ambas muestran el mismo proceso en el espacio de datos y en el espacio de parámetros.`,
+   `El aprendizaje es una estimación iterativa de los parámetros; en el límite, el estimador por descenso de gradiente coincide con ${T('\\hat{\\boldsymbol\\beta}=(X^\\top X)^{-1}X^\\top\\mathbf y')}. Detener el entrenamiento antes (parada temprana) produce un estimador contraído hacia el punto inicial, con un efecto análogo a la regularización.`,
+   'Cap. 2.3 (estimación) y Cap. 4.4 (regularización).')
+ },
+ generaliza:{
+  0:INF('Ajuste polinómico: entrenamiento y prueba',
+   `La función verdadera (discontinua), los puntos de entrenamiento con los que se ajusta la neurona, una muestra de puntos de prueba no usados en el ajuste y la curva ajustada con el grado y la penalización vigentes.`,
+   `En el subajuste la curva es demasiado rígida y se aleja sistemáticamente de la función verdadera. En el sobreajuste la curva atraviesa los puntos de entrenamiento pero oscila entre ellos y en los extremos, alejándose de los puntos de prueba. Un buen ajuste sigue la tendencia sin seguir el ruido.`,
+   `Ilustra el compromiso sesgo–varianza, ${T('\\mathbb E[(y-\\hat f)^2]=\\text{sesgo}^2+\\text{var}+\\sigma^2')}: los modelos complejos reducen el sesgo pero aumentan la varianza. Las oscilaciones en los bordes son el fenómeno de Runge propio de polinomios de alto grado. La regularización estabiliza la curva al contraer los coeficientes.`,
+   'Cap. 4.1–4.2 (capacidad predictiva, entrenamiento–testeo) y Cap. 4.4.'),
+  1:INF('Error frente a la complejidad',
+   `ECM de entrenamiento y de prueba para los grados 1 a 12, con la penalización vigente. La línea verde es la varianza del ruido ${T('\\sigma^2')} (error irreducible) y la vertical punteada marca el grado actual.`,
+   `El error de entrenamiento decrece al aumentar el grado (modelos anidados); el de prueba describe una U. El mínimo del error de prueba señala la complejidad óptima, y la brecha entre ambas curvas mide el optimismo del error de entrenamiento.`,
+   `Ningún modelo puede alcanzar en prueba un ECM inferior a ${T('\\sigma^2')} en promedio. La elección del hiperparámetro (grado, ${T('\\lambda')}) debe hacerse con datos de validación y no con el error de entrenamiento. Con ${T('\\lambda>0')} la curva de prueba se aplana: el modelo se vuelve menos sensible al grado porque la penalización limita su capacidad efectiva.`,
+   'Cap. 4.2–4.3 (validación y selección de variables) y Cap. 4.4.'),
+  2:INF('Coeficientes estimados',
+   `Barras con los coeficientes ${T('\\hat\\beta_j')} del modelo ${T('y=\\beta_0+\\sum_j\\beta_jx^j')} sobre variables estandarizadas, para el grado y la penalización vigentes.`,
+   `Magnitudes grandes con signos alternantes revelan inestabilidad. Con Ridge todas las barras se encogen de forma gradual; con LASSO algunas desaparecen (valen exactamente cero).`,
+   `Las potencias de ${T('x')} están fuertemente correlacionadas, de modo que sin penalización ${T('X^\\top X')} es casi singular y las varianzas de los coeficientes se inflan (multicolinealidad). Ridge, con solución ${T('(X^\\top X/n+\\lambda I)^{-1}X^\\top\\mathbf y/n')}, mejora el condicionamiento a costa de un sesgo. LASSO, por el umbral suave, realiza selección de variables, y su número de coeficientes no nulos es un estimador de los grados de libertad del modelo.`,
+   'Cap. 3.3 (multicolinealidad) y Cap. 4.3–4.4 (selección, Ridge y LASSO).')
+ },
+ reto:{
+  0:INF('Ajuste a mano de la recta',
+   `Datos con tendencia lineal oculta y la recta de la neurona. Opcionalmente se muestran el centroide ${T('(\\bar x,\\bar y)')} y la recta de MCO.`,
+   `Se busca minimizar la razón ${T('\\mathrm{ECM}_{\\text{neurona}}/\\mathrm{ECM}_{\\text{MCO}}\\ge 1')}. Primero se desplaza la recta hasta pasar por el centroide y luego se ajusta la pendiente hasta equilibrar los residuos a ambos lados.`,
+   `La solución de MCO satisface las ecuaciones normales ${T('\\sum e_i=0')} y ${T('\\sum x_ie_i=0')}; la primera equivale a que la recta contenga al centroide y la segunda determina la pendiente. Ningún ajuste manual puede superar al estimador de MCO en ECM, que es el mínimo global de la función cuadrática.`,
+   'Cap. 2.3 (estimación por mínimos cuadrados).')
+ }
+};
+
+/* ============ páginas ============ */
+const view=$('#view');
+let CUR=null;
+function nav(path){
+  const it=(href,n,t)=>`<a href="${href}" data-p="${href}"><span class="n">${n}</span>${t}</a>`;
+  $('#side').innerHTML=`<h4>Inicio</h4>${it('#/','⌂','Presentación')}${it('#/modulos','☰','Todos los módulos')}<h4>Módulos</h4>${VIS.map(m=>it('#/m/'+m.id,m.num,m.titulo.split(':')[0].replace('De la neurona biológica a la artificial','Neurona biológica → artificial'))).join('')}<h4>Práctica</h4>${it('#/desafio','★','Desafío')}${it('#/acerca','i','Acerca de')}<div class="foot">Jeferson Beltran<br>Estudiante de Economía<br>Modelos Lineales · UNAL · 2026-II</div>`;
+  $$('#side a').forEach(a=>a.classList.toggle('act',a.dataset.p==='#/'+path||(path===''&&a.dataset.p==='#/')));
+}
+const footer=`<footer>NeuroLin · Proyecto de Jeferson Beltran, estudiante de Economía · Modelos Lineales (2018622) 2026-II · Universidad Nacional de Colombia</footer>`;
+function pageHome(){
+  view.innerHTML=`<section class="hero"><div class="txt"><span class="badge">Modelos Lineales · Cap. 8.4 · Introducción a las redes neuronales</span><h1>De la regresión lineal a la neurona que aprende</h1><p class="lead">Un simulador interactivo para entender cómo una sola neurona <b>predice</b>, <b>decide</b> y <b>aprende</b>, y cómo se relaciona con el modelo lineal, la regresión logística y la regularización.</p><div class="row"><a class="btn primary" href="#/m/intro">Comenzar →</a><a class="btn" href="#/modulos">Ver los 6 módulos</a><a class="btn" href="#/desafio">Ir al desafío</a></div></div><div class="hero-img"><div class="bub">¡Hola! Soy <b>Nachito</b> 🦉 y te acompaño en cada módulo.</div><img src="assets/nachito.jpeg" alt="Nachito, mascota de la Universidad Nacional de Colombia"></div></section>
+  <h2>Ruta de aprendizaje</h2><div class="flow">${VIS.map((m,i)=>`<span class="s">${m.num}. ${m.titulo.split(':')[0].replace('De la neurona biológica a la artificial','Neurona')}</span>${i<VIS.length-1?'→':''}`).join('')}</div>
+  <div class="grid">${VIS.map(cardMod).join('')}</div>
+  <h2>¿Cómo se usa?</h2><div class="grid"><div class="card"><h3>1 · Controles</h3><p>Mueve sliders o escribe valores exactos para cambiar datos y parámetros de la neurona.</p></div><div class="card"><h3>2 · Gráficas</h3><p>Todo se recalcula al instante. Las gráficas son interactivas (zoom, hover).</p></div><div class="card"><h3>3 · Teoría y tutorial</h3><p>Cada módulo tiene ficha de teoría con fórmulas y un tutorial guiado.</p></div></div>${footer}`;
+}
+const cardMod=m=>`<a class="card mcard" href="#/m/${m.id}"><span class="num">${m.num}</span><h3>${m.titulo}</h3><span class="badge">${m.cap}</span><p class="muted">${m.resumen}</p></a>`;
+function pageModulos(){view.innerHTML=`<h1>Módulos</h1><p class="lead">Una introducción anatómica y cinco simuladores que llevan la idea de modelo lineal hasta la neurona artificial.</p><div class="grid">${VIS.map(cardMod).join('')}</div>${footer}`}
+function controlHTML(c){
+  if(c.type==='select')return `<label class="ctl"><span>${c.label}</span><select data-id="${c.id}">${c.options.map(o=>`<option value="${o[0]}"${String(o[0])===String(c.value)?' selected':''}>${o[1]}</option>`).join('')}</select></label>`;
+  if(c.type==='check')return `<label class="chk"><input type="checkbox" data-id="${c.id}"${c.value?' checked':''}> ${c.label}</label>`;
+  if(c.type==='log')return `<div class="ctl"><div class="ctl-h"><span>${c.label}</span><output data-out="${c.id}">${c.fmt(c.toVal(c.value))}</output></div><input type="range" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.value}"></div>`;
+  return `<div class="ctl"><div class="ctl-h"><span>${c.label}</span><input type="number" class="num" data-num="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.value}"></div><input type="range" data-id="${c.id}" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.value}"></div>`;
+}
+function pageSim(m){
+  const S=m.init(),P={},allC=m.controles.flatMap(g=>g.items),byId=Object.fromEntries(allC.map(c=>[c.id,c]));
+  allC.forEach(c=>{P[c.id]=c.type==='log'?c.toVal(c.value):c.type==='select'&&c.num?+c.value:c.value});
+  const dec=s=>(String(s).split('.')[1]||'').length;
+  const read=(c,el)=>c.type==='range'?+el.value:c.type==='log'?c.toVal(+el.value):c.type==='select'?(c.num?+el.value:el.value):el.checked;
+  const sync=c=>{const el=$(`[data-id="${c.id}"]`);if(!el)return;if(c.type==='range'){const n=$(`[data-num="${c.id}"]`);if(n&&document.activeElement!==n)n.value=(+el.value).toFixed(dec(c.step))}if(c.type==='log'){const o=$(`[data-out="${c.id}"]`);if(o)o.textContent=c.fmt(P[c.id])}};
+  const ctx={P,S,render,set(id,val){const c=byId[id],el=$(`[data-id="${id}"]`);if(c.type==='check')el.checked=!!val;else el.value=val;P[id]=read(c,el);sync(c)}};
+  function render(){
+    try{
+      const out=m.calcular(P,ctx);
+      if(out.extra!==undefined)$('#extra').innerHTML=out.extra;
+      out.figs.forEach((fg,i)=>plot('fig'+i,fg.data,fg.layout));
+      $('#panel-res').innerHTML=out.panel;renderTex($('#panel-res'));
+    }catch(e){console.error(e);$('#panel-res').innerHTML=`<div class="msg bad">Error al calcular: ${esc(e.message)}</div>`}
+  }
+  view.innerHTML=`<div class="crumbs"><a href="#/">Inicio</a> › <a href="#/modulos">Módulos</a> › ${m.titulo}</div>
+  <div class="titlerow"><div><span class="badge">${m.oculto?'Desafío':'Módulo '+m.num} · ${m.cap}</span><h1>${m.titulo}</h1></div><div class="acts"><button class="btn" id="btn-tutorial">Tutorial</button><button class="btn primary" id="btn-teoria">📘 Teoría</button></div></div>
+  <p class="lead">${m.resumen}</p>
+  ${nachito(TIPS[m.id])}
+  <details class="card" open><summary>Planteamiento</summary>${m.plan}</details>
+  <div class="sim"><section class="card ctrl" id="panel-ctrl"><h3>Controles</h3>${m.controles.map(g=>`<div class="grp">${g.grupo}</div>${g.items.map(controlHTML).join('')}`).join('')}<div class="btns">${(m.botones||[]).map((b,i)=>`<button class="btn ${b.cls||''}" data-btn="${i}">${b.label}</button>`).join('')}</div></section>
+  <section><div id="extra"></div><div id="figs" class="figs">${m.figs.map((g,i)=>`<div class="card fig${g.wide?' wide':''}"><div class="fighead"><span>Figura ${i+1}</span><button class="btn sm" data-info="${i}" title="Interpretación académica de esta gráfica" aria-label="Interpretación de la figura ${i+1}">ⓘ Interpretación</button></div><div id="fig${i}" style="height:${g.h}px"></div></div>`).join('')}</div><div class="card res" id="panel-res"></div></section></div>${m.oculto?'':`<p style="margin-top:18px">${nextLink(m)}</p>`}${footer}`;
+  renderTex($('details'));
+  const ctrl=$('#panel-ctrl');
+  ctrl.addEventListener('input',e=>{
+    const t=e.target;let c,el;
+    if(t.dataset.num){c=byId[t.dataset.num];if(t.value===''||isNaN(+t.value))return;el=$(`[data-id="${c.id}"]`);el.value=clamp(+t.value,+c.min,+c.max)}
+    else if(t.dataset.id){c=byId[t.dataset.id];el=t}else return;
+    P[c.id]=read(c,el);sync(c);render();
+  });
+  ctrl.addEventListener('click',e=>{const b=e.target.closest('[data-btn]');if(!b)return;const r=m.botones[+b.dataset.btn].fn(ctx);if(r!==false)render()});
+  $('#btn-teoria').onclick=()=>openModal('Teoría · '+m.titulo,m.teoria);
+  $('#btn-tutorial').onclick=()=>startTutorial(0);
+  view.onclick=e=>{const pb=e.target.closest('[data-play]');if(pb){playPulse(pb.closest('.svgbox'),+pb.dataset.play);return}const b=e.target.closest('[data-info]');if(!b)return;const it=(INFO[m.id]||{})[b.dataset.info];if(it)openModal('Interpretación · '+it.t,it.h)};
+  CUR={m,S,P};
+  render();
+}
+const nextLink=m=>{const i=VIS.indexOf(m);return `${i>0?`<a class="btn" href="#/m/${VIS[i-1].id}">← ${VIS[i-1].num}. Anterior</a> `:''}${i<VIS.length-1?`<a class="btn primary" href="#/m/${VIS[i+1].id}">Siguiente módulo: ${VIS[i+1].num} →</a>`:`<a class="btn primary" href="#/desafio">Ir al desafío →</a>`}`};
+function pageDesafio(){
+  view.innerHTML=`<h1>Desafío</h1><p class="lead">Pon a prueba lo aprendido: un reto práctico y un cuestionario de ${QUIZ.length} preguntas.</p>
+  <div class="card" style="margin:14px 0"><h3>★ Reto práctico</h3><p>Ajusta a mano los parámetros de una neurona para igualar (casi) la solución de mínimos cuadrados.</p><a class="btn primary" href="#/m/reto">Empezar el reto →</a></div>
+  <h2>Cuestionario</h2>
+  ${QUIZ.map((q,i)=>`<fieldset class="q card"><legend>${i+1}. ${q.q}</legend>${q.o.map((o,j)=>`<label><input type="radio" name="q${i}" value="${j}"> ${o}</label>`).join('')}<div class="fb" id="fb${i}"></div></fieldset>`).join('')}
+  <button class="btn primary" id="grade">Calificar</button><div id="score" style="margin-top:12px"></div>${footer}`;
+  renderTex(view);
+  $('#grade').onclick=()=>{let ok=0;QUIZ.forEach((q,i)=>{const s=$(`input[name=q${i}]:checked`),fb=$('#fb'+i);if(!s){fb.innerHTML='<span class="warn">Sin responder.</span> '+q.e}else if(+s.value===q.c){ok++;fb.innerHTML='<span style="color:var(--pos)">✔ Correcto.</span> '+q.e}else fb.innerHTML=`<span style="color:var(--neg)">✘ Incorrecto.</span> Respuesta: <b>${q.o[q.c]}</b>. ${q.e}`;renderTex(fb)});
+    $('#score').innerHTML=`<div class="msg ${ok>=6?'good':ok>=4?'warn':'bad'}"><b>${ok} / ${QUIZ.length}</b> — ${ok>=6?'¡Excelente dominio!':ok>=4?'Buen avance; repasa la teoría de los módulos donde fallaste.':'Repasa los módulos 0 a 5 y vuelve a intentarlo.'}</div>${nachito(ok>=6?'¡Bravo! Eres un búho de los modelos lineales. 🦉':ok>=4?'¡Vas muy bien! Un repaso rápido y lo dominas.':'¡Ánimo! Cada intento es una iteración del descenso de gradiente: sigue bajando el error.')}`};
+}
+function pageAcerca(){
+  view.innerHTML=`<h1>Acerca de</h1><div class="card"><img class="about-img" src="assets/nachito.jpeg" alt="Nachito, mascota de la Universidad Nacional de Colombia"><h3>NeuroLin · Simulador de neuronas</h3><p>Proyecto desarrollado por <b>Jeferson Beltran</b>, estudiante de <b>Economía</b>, para la asignatura <b>Modelos Lineales (2018622)</b>, grupo 1, semestre 2026-II, Departamento de Estadística, Facultad de Ciencias, Universidad Nacional de Colombia (sede Bogotá).</p><p>El simulador replica el comportamiento de una neurona artificial para <b>predecir</b>, <b>decidir</b> y <b>aprender</b>, conectándola con los temas del programa: Cap. 1 (predicción), Cap. 2 (modelo lineal), Cap. 4 (validación, Ridge y LASSO), Cap. 7 (regresión logística) y Cap. 8.4 (redes neuronales).</p><p><b>Nachito</b>, la mascota de la Universidad Nacional de Colombia, acompaña al estudiante en los módulos, el tutorial y el desafío.</p></div>
+  <h2>Tecnología</h2><p>HTML, CSS y JavaScript sin dependencias de compilación. Gráficas con <b>Plotly.js</b> y fórmulas con <b>KaTeX</b>. Todos los datos se generan en el navegador con semillas fijas para que los resultados sean reproducibles.</p>
+  <h2>Bibliografía del programa</h2><ul><li>Hastie, T., Tibshirani, R., Friedman, J. (2009). <i>The Elements of Statistical Learning</i>. Springer.</li><li>Montgomery, D., Peck, E., Vining, G. (2021). <i>Introduction to Linear Regression Analysis</i>. Wiley.</li><li>Ravishanker, N., Chi, Z., Dey, D. (2021). <i>A First Course in Linear Model Theory</i>. CRC Press.</li><li>Dobson, A., Barnett, A. (2018). <i>An Introduction to Generalized Linear Models</i>. CRC Press.</li></ul>
+  <h2>Estructura</h2><p class="muted">Inicio · Módulos (controles + gráficas + resultados + teoría + tutorial) · Desafío · Acerca de. Inspirada en la organización de un simulador por materias, con contenido propio.</p>${footer}`;
+}
+function page404(){view.innerHTML=`<h1>Página no encontrada</h1><p><a href="#/">Volver al inicio</a></p>`}
+
+/* ============ modal y tutorial ============ */
+function openModal(t,h){$('#modal-title').textContent=t;$('#modal-body').innerHTML=h;renderTex($('#modal-body'));$('#modal').hidden=false}
+function closeModal(){$('#modal').hidden=true}
+$('#modal-close').onclick=closeModal;
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();endTutorial()}});
+const TUT=[
+ {sel:'#panel-ctrl',t:'1 · Controles',d:'Aquí cambias los datos y los parámetros de la neurona. Cada slider tiene también una caja numérica para valores exactos. Los botones ejecutan acciones como entrenar o reiniciar.'},
+ {sel:'#figs',t:'2 · Gráficas',d:'Se actualizan en tiempo real. Puedes hacer zoom, mover y pasar el cursor sobre los puntos para ver valores.'},
+ {sel:'.fighead .btn',t:'2b · Interpretación',d:'Cada figura tiene un botón ⓘ con su interpretación académica: qué representa, cómo leerla y qué significa estadísticamente.'},
+ {sel:'#panel-res',t:'3 · Resultados',d:'Indicadores numéricos y un mensaje de interpretación: te dice si lo que ves es buen ajuste, sobreajuste, divergencia, etc.'},
+ {sel:'#btn-teoria',t:'4 · Teoría',d:'Abre la ficha con las fórmulas y la conexión con los capítulos del programa de Modelos Lineales.'}
+];
+function endTutorial(){$$('.tut-hl').forEach(e=>e.classList.remove('tut-hl'));const c=$('.tut-card');if(c)c.remove()}
+function startTutorial(i){
+  endTutorial();if(i>=TUT.length)return;const s=TUT[i],el=$(s.sel);if(!el)return;
+  el.classList.add('tut-hl');el.scrollIntoView({block:'center',behavior:'smooth'});
+  const c=document.createElement('div');c.className='tut-card';
+  c.innerHTML=`<div class="who"><span class="av sm"><img src="assets/nachito.jpeg" alt="Nachito"></span><b>Nachito · ${s.t}</b></div><p>${s.d}</p><div style="display:flex;gap:8px;justify-content:space-between"><button class="btn sm" id="tc-x">Salir</button><span>${i>0?'<button class="btn sm" id="tc-p">← Atrás</button> ':''}<button class="btn sm primary" id="tc-n">${i<TUT.length-1?'Siguiente →':'Terminar'}</button></span></div>`;
+  document.body.appendChild(c);
+  $('#tc-x').onclick=endTutorial;$('#tc-n').onclick=()=>startTutorial(i+1);const p=$('#tc-p');if(p)p.onclick=()=>startTutorial(i-1);
+}
+
+/* ============ router y tema ============ */
+function route(){
+  if(CUR&&CUR.m.leave)CUR.m.leave(CUR.S);CUR=null;closeModal();endTutorial();
+  const seg=location.hash.replace(/^#\/?/,'').split('/').filter(Boolean),path=seg.join('/');
+  nav(path);$('#side').classList.remove('open');
+  if(!seg.length)pageHome();
+  else if(path==='modulos')pageModulos();
+  else if(seg[0]==='m'&&MODS.find(m=>m.id===seg[1]))pageSim(MODS.find(m=>m.id===seg[1]));
+  else if(path==='desafio')pageDesafio();
+  else if(path==='acerca')pageAcerca();
+  else page404();
+  window.scrollTo(0,0);
+}
+function setTheme(t){document.documentElement.dataset.theme=t;try{localStorage.setItem('neurolin-theme',t)}catch(e){}}
+(function(){let t=null;try{t=localStorage.getItem('neurolin-theme')}catch(e){}if(!t)t='light';document.documentElement.dataset.theme=t})();
+$('#btn-theme').onclick=()=>{setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');if(CUR){const keep=CUR;const l=location.hash;route()}};
+$('#burger').onclick=()=>$('#side').classList.toggle('open');
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>
