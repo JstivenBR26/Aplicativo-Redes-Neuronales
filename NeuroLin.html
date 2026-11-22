@@ -527,6 +527,7 @@ const MODS=[
 /* ---------- 3. DECIDE ---------- */
 {id:'decide',num:3,titulo:'Una neurona que decide: clasificación',cap:'Cap. 7 y 4.1 · Regresión logística y desempeño',
  resumen:'Con activación sigmoide la neurona estima una probabilidad y decide con un umbral. Mueve la frontera y observa matriz de confusión, ROC y métricas.',
+ video:'assets/modulo3.mp4',
  plan:`<p>Dos grupos de puntos en el plano. La neurona calcula ${T('p=\\sigma(w_1x_1+w_2x_2+b)')} y decide “clase 1” si ${T('p\\ge t')}.</p><p><b>Reto:</b> ubica la frontera a mano para maximizar la exactitud; luego pulsa “Entrenar” y compara. Sube el grupo de ruido y observa qué le pasa al AUC y a los errores. ¿Cómo cambia la decisión al mover el umbral ${T('t')}?</p>`,
  teoria:`<p><b>Neurona sigmoide = regresión logística.</b></p>${T(String.raw`p=P(y=1\mid\mathbf x)=\sigma(\mathbf w^\top\mathbf x+b)=\frac{1}{1+e^{-(\mathbf w^\top\mathbf x+b)}},\qquad \log\frac{p}{1-p}=\mathbf w^\top\mathbf x+b`,true)}
  <p><b>Pérdida (−log-verosimilitud, entropía cruzada):</b></p>${T(String.raw`L=-\frac1n\sum_i\big[y_i\log p_i+(1-y_i)\log(1-p_i)\big]`,true)}
@@ -830,7 +831,7 @@ function pageSim(m){
   <div class="titlerow"><div><span class="badge">${m.oculto?'Desafío':'Módulo '+m.num} · ${m.cap}</span><h1>${m.titulo}</h1></div><div class="acts"><button class="btn" id="btn-tutorial">Tutorial</button><button class="btn primary" id="btn-teoria">📘 Teoría</button></div></div>
   <p class="lead">${m.resumen}</p>
   ${nachito(TIPS[m.id])}
-  <details class="card" open><summary>Planteamiento</summary>${m.plan}</details>
+  <details class="card" open><summary>Planteamiento</summary>${m.plan}</details>${m.video?`<details class="card" open><summary>🎬 Video explicativo</summary><video controls preload="metadata" playsinline style="display:block;width:100%;max-width:380px;max-height:75vh;margin:10px auto 0;border-radius:10px;background:#000"><source src="${m.video}" type="video/mp4">Tu navegador no puede reproducir el video. <a href="${m.video}">Descárgalo aquí</a>.</video></details>`:""}
   <div class="sim"><section class="card ctrl" id="panel-ctrl"><h3>Controles</h3>${m.controles.map(g=>`<div class="grp">${g.grupo}</div>${g.items.map(controlHTML).join('')}`).join('')}<div class="btns">${(m.botones||[]).map((b,i)=>`<button class="btn ${b.cls||''}" data-btn="${i}">${b.label}</button>`).join('')}</div></section>
   <section><div id="extra"></div><div id="figs" class="figs">${m.figs.map((g,i)=>`<div class="card fig${g.wide?' wide':''}"><div class="fighead"><span>Figura ${i+1}</span><button class="btn sm" data-info="${i}" title="Interpretación académica de esta gráfica" aria-label="Interpretación de la figura ${i+1}">ⓘ Interpretación</button></div><div id="fig${i}" style="height:${g.h}px"></div></div>`).join('')}</div><div class="card res" id="panel-res"></div></section></div>${m.oculto?'':`<p style="margin-top:18px">${nextLink(m)}</p>`}${footer}`;
   renderTex($('details'));
